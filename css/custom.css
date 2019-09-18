@@ -1,0 +1,71 @@
+.container {
+    max-height: 1200px;
+    min-height: 500px;
+    width: 440px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-radius: 2px;
+    background: white;
+}
+  body {
+    font-family: "proxima-nova", Arial, sans-serif;
+    font-size: 100%;
+  }
+  #status {
+    /* avoid an excessively wide status text */
+    white-space: pre;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 400px;
+  }
+  .patient-list {
+    max-height: 250px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+.pendo-button {
+    background-color: #229ca8;
+    color: #fff;
+    transition: 0.3s;
+    float: right;
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.pendo-button:hover {
+    background-color: #718098;
+    border-color: #718098;
+    color: #fff;
+}
+
+h3 {
+    color: #ec2059;
+    font-weight: 700;
+    padding-left: 20px;
+}
+
+h5 {
+    font-weight: 700;
+}
+
+#class-header {
+    padding-top: 10px;
+}
+
+.input-row {
+    padding-bottom: 10px;
+}
+
+#target-img {
+    width: 40px;
+}
+
+#title {
+    padding-bottom: 10px;
+}
+
+#header-div {
+    margin: 15px 0 15px;
+}

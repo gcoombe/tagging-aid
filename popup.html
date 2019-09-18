@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+    <div class="container">
+        <div id="header-div" class="some-class other-class">
+          <table width="100%">
+            <tr>
+              <td width="5%"><img id="target-img" src="./pendo_target.png"></td>
+              <td width="95%" id="title"><h3>Pendo Tagging Aid</h3></td>
+            </tr>
+          </table>
+          <p id="status"></p>
+        </div>
+        <div id="id-header">
+          <h5>Element ID:</h5>
+        </div>
+        <div class="form-group">
+          <table width="100%">
+            <tr>
+              <td width="90%"><input class="form-control" type="text" id="id-result" value="" readonly></td>
+              <td width="2%">&nbsp;</td>
+              <td width="8%">
+                <div onclick="copyToClipboard('id-result', '#');">
+                  <a href="#"><img src="./copy_icon.ico" width="20"></a>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <div id="class-header">
+              <h5>Element Class Names:</h5>
+          </div>
+          <table width="100%">
+            <tr>
+              <td width="90%" class="input-row"><input class="form-control class-result" type="text" value="" id="class-result-0" readonly></td>
+              <td width="2%" class="input-row">&nbsp;</td>
+              <td width="8%" class="input-row">
+                <div onclick="copyToClipboard('class-result-0', '.');">
+                  <a href="#"><img src="./copy_icon.ico" width="20"></a>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" id="template-table"></table>  
+        </div>
+        
+    </div>
+    <script src="./scripts/jquery.min.js" type="text/javascript"></script>
+    <script src="./scripts/extension.js" type="text/javascript"></script>
+</body>
+</html>
+
