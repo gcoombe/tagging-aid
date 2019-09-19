@@ -7,5 +7,10 @@ chrome.runtime.onMessage.addListener( function(request, sender, sendResponse) {
         header.innerHTML = request.data;
     });
     sendResponse({data: data, success: true});
+
+    if (request.requested == "createDiv"){
+        //Code to create the div
+        sendResponse({confirmation: "Successfully created div"});
+    }
 });
 

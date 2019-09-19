@@ -58,3 +58,8 @@ function copyToClipboard(inputId, inputType) {
   /* Copy the text inside the text field */
   document.execCommand("copy");
 }
+
+$(function() {
+  // make the overlay draggable
+  $( "#_pendo-tag-assistant_" ).draggable();
+})
