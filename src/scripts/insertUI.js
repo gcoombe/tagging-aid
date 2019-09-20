@@ -22,10 +22,6 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     function startMouseover(){
     // Set a status text letting the user the targeting is ready
     document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
-    
-    window.onmouseleave=(function(e) {
-        $(e.target).css('outline','none');
-    });
 
     window.onmouseover=(function(e) {
         // Get the target element's Id and Classes    
@@ -34,8 +30,8 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         _elemType_ = e.target.nodeName;
 
         // Controls highlight box
-        $(e.target).css('outline','2px dashed #028cc2');
-        $("*").not(e.target).css('outline', '1px solid transparent');
+        $(e.target).addClass('_pendota-outline_');
+        $("*").not(e.target).removeClass('_pendota-outline_');
         
         var appendedHTML = "";
 
@@ -51,7 +47,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
             '<td width="90%" class="_pendota_input-row_"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
             '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
             '<td width="8%" class="_pendota_input-row_">' +
-            '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_", ".");\'>' +
+            '<div onclick=\'copyToClipboard(e, "_pendota_class-result-' + i + '_", ".");\'>' +
                 '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
             '</div>' +
             '</td>' +
@@ -77,7 +73,9 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     startMouseover();
 
-    function copyToClipboard(inputId, inputType) {
+    function copyToClipboard(e, inputId, inputType) {
+    e.stopPropagation();
+
     /* Get the text field */
     var copyText = document.getElementById(inputId);
 
