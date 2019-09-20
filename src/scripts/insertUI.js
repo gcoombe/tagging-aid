@@ -47,7 +47,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
             '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
             '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
             '<td width="8%" class="_pendota_input-row_">' +
-            '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_");\'>' +
+            '<div id="_pendota_class-result-' + i + '_" class="_pendota-copy-link_");\'>' +
                 '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
             '</div>' +
             '</td>' +
@@ -57,6 +57,11 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         if(_classNames_.length > 1) {
         $("#_pendota_template-table_").html(appendedHTML);
         }  
+
+        $("._pendota-copy-link_").on("click", function(e) {
+            e.stopPropagation();
+            copyToClipboard(e.currentTarget.id);
+        })
     });
     };
 
