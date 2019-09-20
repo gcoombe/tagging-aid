@@ -4,6 +4,10 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.executeScript(tab.id, {
     file: './src/scripts/jquery.min.js'
     });
+
+    chrome.tabs.executeScript(tab.id, {
+      file: './src/scripts/jqueryui.min.js'
+      });
     
     chrome.tabs.executeScript(tab.id, {
 		file: './src/scripts/insertUI.js'

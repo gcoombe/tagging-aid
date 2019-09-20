@@ -60,6 +60,14 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     $('._pendo-copy-icon_').attr('src', copy_icon_url);
     $('#_pendo-target-img_').attr('src', pendo_target_url);
+/*     $( function() {
+        $( "#_pendo-tag-assistant_" ).position({
+            my: "left top",
+            at: "left top",
+            of: "window"
+        })
+        $( "#_pendo-tag-assistant_" ).draggable();
+      } ); */
     console.log("Replaced tag assistant icons.");
     startMouseover();
 
