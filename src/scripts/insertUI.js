@@ -74,7 +74,6 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     startMouseover();
 
     function copyToClipboard(e, inputId, inputType) {
-    e.stopPropagation();
 
     /* Get the text field */
     var copyText = document.getElementById(inputId);
