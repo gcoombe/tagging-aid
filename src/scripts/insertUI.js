@@ -21,10 +21,6 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     function startMouseover(){
     // Set a status text letting the user the targeting is ready
     document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
-    
-    window.onmouseleave=(function(e) {
-        $(e.target).css('outline','none');
-    });
 
     window.onmouseover=(function(e) {
         // Get the target element's Id and Classes    
@@ -33,8 +29,8 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         _elemType_ = e.target.nodeName;
 
         // Controls highlight box
-        $(e.target).css('outline','2px dashed #028cc2');
-        $("*").not(e.target).css('outline', '1px solid transparent');
+        $(e.target).addClass('_pendota-outline_');
+        $("*").not(e.target).removeClass('_pendota-outline_');
         
         var appendedHTML = "";
 
@@ -65,6 +61,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
+    e.preventDefault();
     if(window.onmouseover != null) {
         document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
         window.onmouseover = null;
@@ -76,6 +73,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     startMouseover();
 
     function copyToClipboard(inputId) {
+
     /* Get the text field */
     var copyText = document.getElementById(inputId);
 

@@ -32,6 +32,10 @@
     margin: 0 auto;
 }
 
+._pendota-outline_ {
+    outline: 2px dashed #028cc2;
+}
+
 ._pendota-button_ {
     background-color: #229ca8;
     color: #fff;
