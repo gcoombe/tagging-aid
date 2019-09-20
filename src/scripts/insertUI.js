@@ -66,6 +66,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
+    e.preventDefault();
     if(window.onmouseover != null) {
         document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
         window.onmouseover = null;
