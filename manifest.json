@@ -4,7 +4,7 @@
     "description": "This extension lets you see what ids, classes, and attributes are in the DOM",
     "version": "1.0",
     "browser_action": {
-        "default_icon": "pendo_target.png",
+        "default_icon": "./src/ui/images/pendo_target.png",
         "default_title": "Pendo Tagging Aid"
     },
     "permissions": [

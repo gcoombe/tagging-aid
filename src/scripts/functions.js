@@ -1,6 +1,7 @@
 //Invoke the Mouseover event immediately
 var _id_ = "";
 var _classNames_ = [];
+var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
 
 function startMouseover(){
   document.getElementById('status').textContent = "Ready to inspect!";
@@ -22,7 +23,7 @@ function startMouseover(){
         '<td width="2%" class="input-row">&nbsp;</td>' +
         '<td width="8%" class="input-row">' +
           '<div onclick=\'copyToClipboard("class-result-' + i + '", ".");\'>' +
-            '<a href="#"><img src="./copy_icon.ico" width="20"></a>' +
+            '<a href="#"><img src="' + copy_icon_url + '" width="20"></a>' +
           '</div>' +
         '</td>' +
         '</tr>';
@@ -43,9 +44,10 @@ window.onclick = function (e) {
   }
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-  (startMouseover());
-});
+$('#_pendo-copy-icon_').attr('src', copy_icon_url);
+console.log("This did execute");
+startMouseover();
+
 
 function copyToClipboard(inputId, inputType) {
   /* Get the text field */
@@ -58,8 +60,3 @@ function copyToClipboard(inputId, inputType) {
   /* Copy the text inside the text field */
   document.execCommand("copy");
 }
-
-$(function() {
-  // make the overlay draggable
-  $( "#_pendo-tag-assistant_" ).draggable();
-})
