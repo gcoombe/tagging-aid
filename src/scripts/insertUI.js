@@ -10,45 +10,61 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     $("body").append(data);
     console.log('Appended body');
 }).then(() => { // Execute functions after appending UI
-
-    //Invoke the Mouseover event immediately
     var _id_ = "";
     var _classNames_ = [];
+    var _elemType_ = "";
     var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
-    var pendo_target_url = chrome.extension.getURL('/src/ui/images/pendo_target.png');
+        var pendo_target_url = chrome.extension.getURL('/src/ui/images/pendo_target.png');
+
+        $('._pendota-copy-icon_').attr('src', copy_icon_url);
+        $('#_pendota-target-img_').attr('src', pendo_target_url);
 
     function startMouseover(){
-        document.getElementById('status').textContent = "Ready to inspect!";
+    // Set a status text letting the user the targeting is ready
+    document.getElementById('status').textContent = "Ready to inspect!  Click an element to lock info.";
+    
+    window.onmouseleave=(function(e) {
+        $(e.target).css('outline','none');
+    });
+
+    window.onmouseover=(function(e) {
+        // Get the target element's Id and Classes    
+        _id_ = e.target.id;
+        _classNames_ = e.target.className.split(" ");
+        _elemType_ = e.target.nodeName;
+
+        // Controls highlight box
+        $(e.target).css('outline','2px dashed #028cc2');
+        $("*").not(e.target).css('outline', '1px solid transparent');
         
-        window.onmouseover=(function(e) {
-            _id_ = e.target.id;
-            _classNames_ = e.target.className.split(" ");
+        var appendedHTML = "";
 
-            var appendedHTML = "";
+        $('#type-result').val("" + _elemType_);
+        $('#id-result').val("#" + _id_);
+        $('#class-result-0').val("." + _classNames_[0]);
+        $("#template-table").empty();
+        
+        //Build extra class spaces
+        for (i=1; i < _classNames_.length; i++) {
+        appendedHTML = appendedHTML +
+        '<tr>' +
+            '<td width="90%" class="input-row"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
+            '<td width="2%" class="input-row">&nbsp;</td>' +
+            '<td width="8%" class="input-row">' +
+            '<div onclick=\'copyToClipboard("class-result-' + i + '", ".");\'>' +
+                '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
+            '</div>' +
+            '</td>' +
+            '</tr>';
+        }
 
-            $('#id-result').val("#" + _id_);
-            $('#class-result-0').val("." + _classNames_[0]);
-            $("#template-table").empty();
-            
-            for (i=1; i < _classNames_.length; i++) {
-            appendedHTML = appendedHTML +
-            '<tr>' +
-                '<td width="90%" class="input-row"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
-                '<td width="2%" class="input-row">&nbsp;</td>' +
-                '<td width="8%" class="input-row">' +
-                '<div onclick=\'copyToClipboard("class-result-' + i + '", ".");\'>' +
-                    '<a href="#"><img src="' + copy_icon_url + '" width="20"></a>' +
-                '</div>' +
-                '</td>' +
-                '</tr>';
-            }
-
-            if(_classNames_.length > 1) {
-            $("#template-table").html(appendedHTML);
-            }  
-        });
+        if(_classNames_.length > 1) {
+        $("#template-table").html(appendedHTML);
+        }  
+    });
     };
 
+    // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
     if(window.onmouseover != null) {
         document.getElementById('status').textContent = "Element Locked.  Click anywhere to reset.";
@@ -58,19 +74,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     }
     };
 
-    $('._pendo-copy-icon_').attr('src', copy_icon_url);
-    $('#_pendo-target-img_').attr('src', pendo_target_url);
-/*     $( function() {
-        $( "#_pendo-tag-assistant_" ).position({
-            my: "left top",
-            at: "left top",
-            of: "window"
-        })
-        $( "#_pendo-tag-assistant_" ).draggable();
-      } ); */
-    console.log("Replaced tag assistant icons.");
     startMouseover();
-
 
     function copyToClipboard(inputId, inputType) {
     /* Get the text field */
