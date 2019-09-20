@@ -1,5 +1,4 @@
 //Injects the tag assistant UI
-console.log("Tag Assistant preparing...");
 
 // Append CSS File to head
 //$("head").append('<link href="' + chrome.extension.getURL('src/css/bootstrap.min.css') + '" rel="stylesheet">');
@@ -48,10 +47,10 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         for (i=1; i < _classNames_.length; i++) {
         appendedHTML = appendedHTML +
         '<tr>' +
-            '<td width="90%" class="_pendota_input-row_"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
+            '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
             '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
             '<td width="8%" class="_pendota_input-row_">' +
-            '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_", ".");\'>' +
+            '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_");\'>' +
                 '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
             '</div>' +
             '</td>' +
@@ -76,7 +75,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     startMouseover();
 
-    function copyToClipboard(inputId, inputType) {
+    function copyToClipboard(inputId) {
     /* Get the text field */
     var copyText = document.getElementById(inputId);
 
