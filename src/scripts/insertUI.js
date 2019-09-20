@@ -21,8 +21,9 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     function startMouseover(){
     // Set a status text letting the user the targeting is ready
     document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
-
+        
     window.onmouseover=(function(e) {
+        e.preventDefault();
         // Get the target element's Id and Classes    
         _id_ = e.target.id;
         _classNames_ = e.target.className.split(" ");
@@ -62,6 +63,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
     e.preventDefault();
+
     if(window.onmouseover != null) {
         document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
         window.onmouseover = null;
@@ -72,16 +74,24 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     startMouseover();
 
+    $("._pendota-copy-link_").on("click", function(e) {
+        e.stopPropagation();
+        copyToClipboard(e.currentTarget.id);
+    })
+
     function copyToClipboard(inputId) {
 
-    /* Get the text field */
-    var copyText = document.getElementById(inputId);
+        
+        /* Get the text field */
+        var copyText = document.getElementById(inputId);
+        
+        /* Select the text field */
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+        
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+        }
 
-    /* Select the text field */
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); /*For mobile devices*/
-
-    /* Copy the text inside the text field */
-    document.execCommand("copy");
-    }
 });
+
