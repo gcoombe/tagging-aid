@@ -2,7 +2,7 @@
 console.log("Tag Assistant preparing...");
 
 // Append CSS File to head
-$("head").append('<link href="' + chrome.extension.getURL('src/css/bootstrap.min.css') + '" rel="stylesheet">');
+//$("head").append('<link href="' + chrome.extension.getURL('src/css/bootstrap.min.css') + '" rel="stylesheet">');
 $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') + '" rel="stylesheet">');
 
 // Append popup div to the body
@@ -21,7 +21,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     function startMouseover(){
     // Set a status text letting the user the targeting is ready
-    document.getElementById('status').textContent = "Ready to inspect!  Click an element to lock info.";
+    document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
     
     window.onmouseleave=(function(e) {
         $(e.target).css('outline','none');
@@ -39,19 +39,19 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         
         var appendedHTML = "";
 
-        $('#type-result').val("" + _elemType_);
-        $('#id-result').val("#" + _id_);
-        $('#class-result-0').val("." + _classNames_[0]);
-        $("#template-table").empty();
+        $('#_pendota_type-result_').val("" + _elemType_);
+        $('#_pendota_id-result_').val("#" + _id_);
+        $('#_pendota_class-result-0_').val("." + _classNames_[0]);
+        $("#_pendota_template-table_").empty();
         
         //Build extra class spaces
         for (i=1; i < _classNames_.length; i++) {
         appendedHTML = appendedHTML +
         '<tr>' +
-            '<td width="90%" class="input-row"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
-            '<td width="2%" class="input-row">&nbsp;</td>' +
-            '<td width="8%" class="input-row">' +
-            '<div onclick=\'copyToClipboard("class-result-' + i + '", ".");\'>' +
+            '<td width="90%" class="_pendota_input-row_"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
+            '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
+            '<td width="8%" class="_pendota_input-row_">' +
+            '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_", ".");\'>' +
                 '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
             '</div>' +
             '</td>' +
@@ -59,7 +59,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         }
 
         if(_classNames_.length > 1) {
-        $("#template-table").html(appendedHTML);
+        $("#_pendota_template-table_").html(appendedHTML);
         }  
     });
     };
@@ -67,7 +67,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
     if(window.onmouseover != null) {
-        document.getElementById('status').textContent = "Element Locked.  Click anywhere to reset.";
+        document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
         window.onmouseover = null;
     } else {
         startMouseover();

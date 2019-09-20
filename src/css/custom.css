@@ -1,10 +1,11 @@
-.container {
+._pendota_container_ {
     max-height: 1200px;
     min-height: 500px;
     width: 440px;
     border: 2px solid rgba(0,0,0,0.3);
     border-radius: 2px;
     background: white;
+    padding: 20px;
 }
 
 #_pendota-tag-assistant_ {
@@ -14,25 +15,16 @@
     z-index: 99999999;
 }
 
-  body {
-    font-family: "proxima-nova", Arial, sans-serif;
-    font-size: 100%;
-  }
-  #status {
+#_pendota_status_ {
     /* avoid an excessively wide status text */
     white-space: pre;
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 400px;
-  }
-  .patient-list {
-    max-height: 250px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    max-width: 100%;
-  }
+    font-size: 11px;
+}
 
-.pendo-button {
+._pendota-button_ {
     background-color: #229ca8;
     color: #fff;
     transition: 0.3s;
@@ -42,38 +34,45 @@
     font-size: 16px;
 }
 
-.pendo-button:hover {
+._pendota-button_:hover {
     background-color: #718098;
     border-color: #718098;
     color: #fff;
 }
 
-h3 {
+._pendota_ h3 {
     color: #ec2059;
     font-weight: 700;
     padding-left: 20px;
 }
 
-h5 {
+._pendota_ h5 {
     font-weight: 700;
 }
 
-#class-header {
+._pendota_form-control_ {
+    border-radius: 2px;
+    padding: 2px;
+    background-color: #eeeeee;
+    width: 100%;
+}
+
+._pendota_row-header_ {
     padding-top: 10px;
 }
 
-.input-row {
+._pendota_input-row_ {
     padding-bottom: 10px;
 }
 
-#target-img {
+#_pendota_target-img_ {
     width: 40px;
 }
 
-#title {
+#_pendota_title_ {
     padding-bottom: 10px;
 }
 
-#header-div {
+#_pendota_header-div_ {
     margin: 15px 0 15px;
 }

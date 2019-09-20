@@ -4,7 +4,7 @@ var _classNames_ = [];
 var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
 
 function startMouseover(){
-  document.getElementById('status').textContent = "Ready to inspect!";
+  document.getElementById('_pendota_status_').textContent = "Ready to inspect!";
   
   window.onmouseover=(function(e) {
     _id_ = e.target.id;
@@ -12,17 +12,17 @@ function startMouseover(){
 
     var appendedHTML = "";
 
-    $('#id-result').val("#" + _id_);
-    $('#class-result-0').val("." + _classNames_[0]);
-    $("#template-table").empty();
+    $('#_pendota_id-result').val("#" + _id_);
+    $('#_pendota_class-result-0_').val("." + _classNames_[0]);
+    $("#_pendota_template-table_").empty();
     
     for (i=1; i < _classNames_.length; i++) {
       appendedHTML = appendedHTML +
       '<tr>' +
-        '<td width="90%" class="input-row"><input class="form-control class-result" type="text" id="class-result-' + i + '" value=".' + _classNames_[i] + '" readonly></td>' +
-        '<td width="2%" class="input-row">&nbsp;</td>' +
-        '<td width="8%" class="input-row">' +
-          '<div onclick=\'copyToClipboard("class-result-' + i + '", ".");\'>' +
+        '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
+        '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
+        '<td width="8%" class="_pendota_input-row_">' +
+          '<div onclick=\'copyToClipboard("_pendota_class-result-' + i + '_", ".");\'>' +
             '<a href="#"><img src="' + copy_icon_url + '" width="20"></a>' +
           '</div>' +
         '</td>' +
@@ -30,14 +30,14 @@ function startMouseover(){
     }
 
     if(_classNames_.length > 1) {
-      $("#template-table").html(appendedHTML);
+      $("#_pendota_template-table_").html(appendedHTML);
     }  
   });
 };
 
 window.onclick = function (e) {
   if(window.onmouseover != null) {
-    document.getElementById('status').textContent = "Element Locked.  Click anywhere to reset.";
+    document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
     window.onmouseover = null;
   } else {
     startMouseover();
