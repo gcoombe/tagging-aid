@@ -41,7 +41,10 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         e.preventDefault();
         // Get the target element's Id and Classes    
         _id_ = e.target.id;
-        _classNames_ = e.target.className.split(" ");
+        _classNames_ = e.target.className.split(" ").filter((cls) => {
+            return !cls.startsWith('_pendota');
+        });
+        if (_classNames_.length == 0) {_classNames_ = ['']}
         _elemType_ = e.target.nodeName;
 
         // Controls highlight box
