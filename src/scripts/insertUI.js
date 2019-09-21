@@ -7,7 +7,6 @@ $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') 
 // Append popup div to the body
 $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     $("body").append(data);
-    console.log('Appended body');
 }).then(() => { // Execute functions after appending UI
     var _id_ = "";
     var _classNames_ = [];
