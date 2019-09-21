@@ -9,7 +9,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     });
 
     chrome.tabs.executeScript(tab.id, {
-      file: './src/scripts/plain-draggable.min.js'
+      file: './src/scripts/interact.min.js'
     }); 
     
     chrome.tabs.executeScript(tab.id, {

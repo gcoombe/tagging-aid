@@ -16,6 +16,20 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
     var pendo_target_url = chrome.extension.getURL('/src/ui/images/pendo_target.png');
 
+    const position = { x: 0, y: 0 }
+
+    interact('._pendota-draggable_').draggable({
+    listeners: {
+        move (event) {
+        position.x += event.dx
+        position.y += event.dy
+
+        event.target.style.transform =
+            `translate(${position.x}px, ${position.y}px)`
+        },
+    }
+    })
+
     $('._pendota-copy-icon_').attr('src', copy_icon_url);
     $('#_pendota-target-img_').attr('src', pendo_target_url);
 
@@ -68,7 +82,13 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
-    e.preventDefault();
+        e.preventDefault();
+        var el = e.target;
+        if (el.id == "_pendota-tag-assistant_") { return; }
+        while (el.parentNode) {
+            if (el.parentNode.id == "_pendota-tag-assistant_") { return; }
+            el = el.parentNode;
+        }
         if(window.onmouseover != null) {
             document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
             window.onmouseover = null;

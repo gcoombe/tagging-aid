@@ -21,6 +21,11 @@
     z-index: 999999999;
 }
 
+._pendota-draggable_ {
+    touch-action: none;
+    user-select: none;
+}
+
 #_pendota_header_div_ {
     padding-top: 0px;
     margin: 0 auto;
