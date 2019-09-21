@@ -9,8 +9,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     });
 
     chrome.tabs.executeScript(tab.id, {
-      file: './src/scripts/jqueryui.min.js'
-    });
+      file: './src/scripts/plain-draggable.min.js'
+    }); 
     
     chrome.tabs.executeScript(tab.id, {
 		  file: './src/scripts/insertUI.js'
