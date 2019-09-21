@@ -41,11 +41,19 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         e.preventDefault();
         // Get the target element's Id and Classes    
         _id_ = e.target.id;
-        _classNames_ = e.target.className.split(" ").filter((cls) => {
-            return !cls.startsWith('_pendota');
-        });
-        if (_classNames_.length == 0) {_classNames_ = ['']}
-        _elemType_ = e.target.nodeName;
+        _classNames_ = $(e.target).attr("class")
+        if (typeof _classNames_ != "undefined") {
+            _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
+                return !cls.startsWith('_pendota'); // block pendota results from output
+            }); 
+            if (_classNames_.length == 0) {
+                _classNames_ = [''];
+            }
+        } else {
+            _classNames_ = [''];
+        }
+
+        _elemType_ = e.target.nodeName.toLowerCase();
 
         // Controls highlight box
         $(e.target).addClass('_pendota-outline_');
