@@ -4,7 +4,11 @@
 }
 
 /* Reset css for all pendota elements */
-#_pendota-wrapper_,#_pendota-wrapper_ *,#_pendota-wrapper_ a:hover,#_pendota-wrapper_ a:visited,#_pendota-wrapper_ a:active{
+#_pendota-wrapper_,
+#_pendota-wrapper_ *,
+#_pendota-wrapper_ a:hover,
+#_pendota-wrapper_ a:visited,
+#_pendota-wrapper_ a:active {
 	background:none;
 	border:none;
     bottom:auto;
