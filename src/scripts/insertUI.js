@@ -43,7 +43,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         _classNames_ = $(e.target).attr("class")
         if (typeof _classNames_ != "undefined") {
             _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
-                return !cls.startsWith('_pendota'); // block pendota results from output
+                return cls != "_pendota-outline_"; // block pendota outline results from output
             }); 
             if (_classNames_.length == 0) {
                 _classNames_ = [''];
