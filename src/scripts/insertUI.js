@@ -44,7 +44,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         e.preventDefault();
         // Get the target element's Id and Classes    
         _id_ = e.target.id;
-        _classNames_ = $(e.target).attr("class")
+        _classNames_ = $(e.target).attr("class");
         if (typeof _classNames_ != "undefined") {
             _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
                 return cls != "_pendota-outline_"; // block pendota outline results from output
