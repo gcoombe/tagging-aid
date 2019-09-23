@@ -1,15 +1,53 @@
-._pendota_container_ {
+
+._pendota-outline_ {
+    outline: 2px dashed #028cc2;
+}
+
+/* Reset css for all pendota elements */
+#_pendota-wrapper_,#_pendota-wrapper_ *,#_pendota-wrapper_ a:hover,#_pendota-wrapper_ a:visited,#_pendota-wrapper_ a:active{
+	background:none;
+	border:none;
+    bottom:auto;
+    clear:none;
+    color: #222222;
+	cursor:default;
+	float:none;
+	font-size:medium;
+	font-style:normal;
+	font-weight:normal;
+	left:auto;
+	letter-spacing:normal;
+	line-height:normal;
+	max-height:none;
+	max-width:none;
+	min-height:0;
+	min-width:0;
+	overflow:visible;
+	position:static;
+	right:auto;
+	text-align:left;
+	text-decoration:none;
+	text-indent:0;
+	text-transform:none;
+	top:auto;
+	visibility:visible;
+    white-space:normal;
+    padding: 0;
+    margin: 0;
+}
+
+#_pendota-wrapper_ ._pendota_container_ {
     max-height: 1200px;
     min-height: 500px;
     width: 440px;
     border: 2px solid rgba(0,0,0,0.3);
     border-radius: 2px;
     background: white;
-    padding: 20px;
+    padding: 10px 20px;
     margin: 0 auto;
 }
 
-._pendota-drag-container_ {
+#_pendota-wrapper_ ._pendota-drag-container_ {
     display:block;
     position: fixed;
     width: 100%;
@@ -21,28 +59,32 @@
     z-index: 999999999;
 }
 
-._pendota-draggable_ {
+#_pendota-wrapper_ ._pendota-draggable_ {
     touch-action: none;
     user-select: none;
 }
 
-#_pendota_header_div_ {
+#_pendota-wrapper_ #_pendota_header_div_ {
     padding-top: 0px;
     margin: 0 auto;
 }
 
-._pendota-feather-locked_ {
+#_pendota-wrapper_ #_pendota-lock-icon_ {
+    vertical-align: middle;
+}
+
+#_pendota-wrapper_ ._pendota-feather-locked_ {
     height: 18px;
     width: 18px;
 }
 
-._pendota-feather-unlocked_ {
+#_pendota-wrapper_ ._pendota-feather-unlocked_ {
     height: 18px;
     width: 18px;
     stroke: #a9a9a9;
 }
 
-#_pendota-tag-assistant_ {
+#_pendota-wrapper_ #_pendota-tag-assistant_ {
     display: block;
     position:fixed;
     top:0;
@@ -51,7 +93,7 @@
     margin: 0 auto;
 }
 
-#_pendota_status_ {
+#_pendota-wrapper_ #_pendota_status_ {
     /* avoid an excessively wide status text */
     white-space: pre;
     text-overflow: ellipsis;
@@ -59,13 +101,10 @@
     max-width: 400px;
     font-size: 11px;
     margin: 0 auto;
+    padding-left: 5px;
 }
 
-._pendota-outline_ {
-    outline: 2px dashed #028cc2;
-}
-
-._pendota-button_ {
+#_pendota-wrapper_ ._pendota-button_ {
     background-color: #229ca8;
     color: #fff;
     transition: 0.3s;
@@ -75,25 +114,28 @@
     font-size: 16px;
 }
 
-._pendota-button_:hover {
+#_pendota-wrapper_ ._pendota-button_:hover {
     background-color: #718098;
     border-color: #718098;
     color: #fff;
 }
 
-h3._pendota_ {
+#_pendota-wrapper_ h3._pendota_ {
     color: #ec2059;
     font-weight: 700;
+    font-size: 24px;
     padding-left: 20px;
     margin: 0 auto;
 }
 
-h5._pendota_  {
+#_pendota-wrapper_ h5._pendota_  {
+    font-size: 16px;
     font-weight: 700;
     margin: 0 auto;
+    padding-bottom: 5px;
 }
 
-._pendota_form-control_ {
+#_pendota-wrapper_ ._pendota_form-control_ {
     border-radius: 5px;
     padding: 5px;
     background-color: #efefef;
@@ -102,26 +144,26 @@ h5._pendota_  {
     margin: 0 auto;
 }
 
-._pendota_row-header_ {
+#_pendota-wrapper_ ._pendota_row-header_ {
     padding-top: 10px;
     margin: 0 auto;
 }
 
-._pendota_input-row_ {
+#_pendota-wrapper_ ._pendota_input-row_ {
     padding-bottom: 10px;
     margin: 0 auto;
 }
 
-#_pendota_target-img_ {
+#_pendota-wrapper_ #_pendota_target-img_ {
     width: 40px;
     margin: 0 auto;
 }
 
-#_pendota_title_ {
+#_pendota-wrapper_ #_pendota_title_ {
     padding-bottom: 10px;
     margin: 0 auto;
 }
 
-#_pendota_header-div_ {
+#_pendota-wrapper_ #_pendota_header-div_ {
     margin: 15px 0 15px;
 }
