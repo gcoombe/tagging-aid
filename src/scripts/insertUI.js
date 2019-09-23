@@ -99,11 +99,11 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         lockSwitch(e);
     };
 
-    $(document).keydown(function(e) {
+    window.onkeydown = function (e) {
         if(e.altKey && e.shiftKey && e.keyCode == 76) {
             lockSwitch(e);
         }
-    })
+    };
 
     function lockSwitch(e) {
         e.preventDefault();
@@ -147,3 +147,13 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
 });
 
+
+// Defines function to later remove the Pendo Tag Assistant UI
+function _pendotaRemoveUI_() {
+    $("#_pendota-tag-assistant_").remove();
+    $("*").removeClass("_pendota-outline_");
+
+    window.onclick = function(e) {};
+    window.onmouseover = function(e) {};
+    window.onkeydown = function(e) {};
+}
