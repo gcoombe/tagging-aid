@@ -38,7 +38,7 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     feather.replace();
 
     // Set a status text letting the user the targeting is ready
-    document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
+    document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info (Alt + Shift + L)";
         
     window.onmouseover=(function(e) {
         e.preventDefault();
@@ -99,9 +99,16 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         lockSwitch(e);
     };
 
+    $(document).keydown(function(e) {
+        if(e.altKey && e.shiftKey && e.keyCode == 76) {
+            lockSwitch(e);
+        }
+    })
+
     function lockSwitch(e) {
         e.preventDefault();
         e.stopPropagation();
+        console.log(e);
         var el = e.target;
         if (el.id == "_pendota-tag-assistant_") { return; }
         while (el.parentNode) {
