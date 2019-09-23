@@ -103,6 +103,10 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         if(e.altKey && e.shiftKey && e.keyCode == 76) {
             lockSwitch(e);
         }
+
+        if(e.keyCode == 27) {
+            _pendotaRemoveUI_();
+        }
     };
 
     function lockSwitch(e) {
