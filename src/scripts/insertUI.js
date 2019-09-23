@@ -8,6 +8,7 @@ $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') 
 $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     $("body").append(data);
 }).then(() => { // Execute functions after appending UI
+    feather.replace();
     var _id_ = "";
     var _classNames_ = [];
     var _elemType_ = "";
@@ -33,6 +34,9 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
     $('#_pendota-target-img_').attr('src', pendo_target_url);
 
     function startMouseover(){
+    $('#_pendota-lock-icon_').html('<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>');
+    feather.replace();
+
     // Set a status text letting the user the targeting is ready
     document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info.";
         
@@ -92,7 +96,12 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
 
     // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
     window.onclick = function (e) {
+        lockSwitch(e);
+    };
+
+    function lockSwitch(e) {
         e.preventDefault();
+        e.stopPropagation();
         var el = e.target;
         if (el.id == "_pendota-tag-assistant_") { return; }
         while (el.parentNode) {
@@ -102,10 +111,12 @@ $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
         if(window.onmouseover != null) {
             document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
             window.onmouseover = null;
+            $('#_pendota-lock-icon_').html('<i class="_pendota-feather-locked_" data-feather="lock"></i>');
+            feather.replace();
         } else {
             startMouseover();
         }
-    };
+    }
 
     startMouseover();
 

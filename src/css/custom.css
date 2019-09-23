@@ -31,6 +31,17 @@
     margin: 0 auto;
 }
 
+._pendota-feather-locked_ {
+    height: 18px;
+    width: 18px;
+}
+
+._pendota-feather-unlocked_ {
+    height: 18px;
+    width: 18px;
+    stroke: #a9a9a9;
+}
+
 #_pendota-tag-assistant_ {
     display: block;
     position:fixed;
