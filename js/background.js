@@ -1,11 +1,4 @@
-var visibleDictionary = { };
-
 chrome.browserAction.onClicked.addListener(function (tab) {
-  if (typeof(visibleDictionary[tab.id]) == "undefined") {
-    visibleDictionary[tab.id] = false;
-  }
-  isVisible = visibleDictionary[tab.id];
-  if (!isVisible) {
     // for the current tab, inject the "inject.js" file & execute it
     chrome.tabs.executeScript(tab.id, {
       file: './src/scripts/jquery.min.js'
@@ -24,16 +17,6 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     }); 
     
     chrome.tabs.executeScript(tab.id, {
-		  file: './src/scripts/insertUI.js'
+		  file: './src/scripts/toggleUI.js'
     });
-
-    visibleDictionary[tab.id] = true;
-  } else {
-    chrome.tabs.executeScript(tab.id, {
-		  file: './src/scripts/removeUI.js'
-    });
-
-    visibleDictionary[tab.id] = false;
-  }
-
 });

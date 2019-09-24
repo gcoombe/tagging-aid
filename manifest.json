@@ -1,7 +1,7 @@
 {
     "name": "Pendo Tagging Aid",
     "short_name": "PendoTA",
-    "version": "1.0",
+    "version": "1.1",
     "manifest_version": 2,
     "description": "This extension lets you see what ids, classes, and attributes are in the DOM",
     "homepage_url": "http://pendo.io",
