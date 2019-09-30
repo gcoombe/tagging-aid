@@ -1,6 +1,6 @@
-<table style="border: 0px!important; padding: 0!important;"><tr><td style="border: 0px !important;padding: 0!important;"><img src="https://i.imgur.com/GpWEBKr.png" width="40" height="40"></td><td style="border: 0px !important;padding: 0!important;"><h1>Pendo Tagging Aid</h1></td></tr></table>
-The Tagging Aid Chrome Extension was created to be used alongside the Pendo Visual Designer.  It allows for any Pendo user to inspect the HTML attributes of their web application without having to use technical interfaces like a browser developer tool.  
+# Pendo Tagging Aid
 
+The Tagging Aid Chrome Extension was created to be used alongside the Pendo Visual Designer.  It allows for any Pendo user to inspect the HTML attributes of their web application without having to use technical interfaces like a browser developer tool.  
 ## Requirements
 The Pendo Tagging Aid only works within the Google Chrome browser.  Using the latest version of Chrome is strongly encouraged.
 
