@@ -81,9 +81,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 // Update the Tagging Aid contents
                 updatePendotaContents(e.target);
 
-                // Define the copy function for all copy icons
-                applyCopyFunction();
-
             });
         };
 
@@ -241,6 +238,9 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             if(_classNames_.length > 1) {
                 $("#_pendota_template-table_").html(appendedHTML);
             }  
+
+            // Define the copy function for all copy icons
+            applyCopyFunction();
         }
 
     });
