@@ -52,7 +52,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
             // Set the lock icon to starting "unlocked" state
             $('#_pendota-lock-icon_').html('<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>');
-            $('._pendota-parent-up_').addClass("_pendota-hide-arrow_");
+            $('#_pendota-parent-up_').addClass("_pendota-hide-arrow_");
             $('#_pendota-parent-down_').addClass("_pendota-hide-arrow_");
             feather.replace();
 
