@@ -11,10 +11,6 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.executeScript(tab.id, {
       file: './src/scripts/feather.min.js'
     }); 
-
-    chrome.tabs.executeScript(tab.id, {
-      file: './src/scripts/jqueryhotkeys.js'
-    }); 
     
     chrome.tabs.executeScript(tab.id, {
 		  file: './src/scripts/toggleUI.js'

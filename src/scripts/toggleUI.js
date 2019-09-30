@@ -5,6 +5,9 @@ if (typeof _pendota_isVisible_ == "undefined" || !_pendota_isVisible_) {
     _pendotaRemoveUI_();
 }
 
+// Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
+var _pendota_elem_array_ = [];
+
 function _pendotaInsertUI_() { //Injects the tag assistant UI
     _pendota_isVisible_ = true;
 
@@ -69,13 +72,18 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 */
 
                 // Move the outline to the current item
-                updateOutline(e);
+                updateOutline(e.target);
+
+                // Set new child element in parent traversal tree
+                _pendota_elem_array_ = [];
+                _pendota_elem_array_[0] = {"obj": e.target}; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
 
                 // Update the Tagging Aid contents
-                updatePendotaContents(e);
+                updatePendotaContents(e.target);
 
                 // Define the copy function for all copy icons
                 applyCopyFunction();
+
             });
         };
 
@@ -116,14 +124,48 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 $('#_pendota-parent-up_').removeClass("_pendota-hide-arrow_");
                 $('#_pendota-parent-down_').removeClass("_pendota-hide-arrow_");
                 feather.replace();
+                $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
+                $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
             } else { // if already locked, unlocks instead
                 startMouseover();
             }
         }
 
+        // Sets the onclick function for the parent tree traversal upwards
+        document.getElementById('_pendota-parent-up_').onclick = function (ev) {
+            currentElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
+            if (currentElem["obj"].nodeName.toLowerCase() != "html") {
+                parentElem = {};
+                parentElem["obj"] = currentElem["obj"].parentNode; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+                _pendota_elem_array_.push(parentElem);
+                updatePendotaContents(parentElem["obj"]);
+                updateOutline(parentElem["obj"]);
+                $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
+                if(parentElem["obj"].nodeName.toLowerCase() == "html") {
+                    $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
+                }
+            }
+        };
+
+        // Sets the onclick funtion for the parent tree traveral downwards
+        document.getElementById('_pendota-parent-down_').onclick = function (ev) {
+            currentElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
+            if (_pendota_elem_array_.length > 1) {
+                _pendota_elem_array_.pop();
+                childElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
+                updatePendotaContents(childElem["obj"]);
+                updateOutline(childElem["obj"]);
+                $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
+                if(_pendota_elem_array_.length == 1) {
+                    $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
+                }
+            }
+        };
+
         startMouseover(); // sets the scanner in motion the first time the UI is displayed
 
-        function copyToClipboard(inputId) { // defines the copy function
+        // Define the copy function
+        function copyToClipboard(inputId) {
             
             // Get the text field
             var copyText = document.getElementById(inputId);
@@ -138,24 +180,25 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
         function updateOutline(e) {
             // Controls highlight box
-            $(e.target).addClass('_pendota-outline_');
-            $("*").not(e.target).removeClass('_pendota-outline_');
+            $(e).addClass('_pendota-outline_');
+            $("*").not(e).removeClass('_pendota-outline_');
         }
 
+        // Apply the copy function to all copy icons
         function applyCopyFunction() {
-            $("._pendota-copy-link_").on("click", function(e) { // applies the copy function to all copy icons
+            $("._pendota-copy-link_").on("click", function(e) {
                 e.stopPropagation();
                 copyToClipboard(e.currentTarget.id);
             }) 
         };
-
         applyCopyFunction();
         
+        // Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
         function updatePendotaContents(e) {
             // Get the target element's Id and Classes    
-            _id_ = e.target.id;
+            _id_ = e.id;
 
-            _classNames_ = $(e.target).attr("class"); // jQuery's class attribute is robust, handles svg's and other unique element types
+            _classNames_ = $(e).attr("class"); // jQuery's class attribute is robust, handles svg's and other unique element types
 
             if (typeof _classNames_ != "undefined") {
                 _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
@@ -168,7 +211,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 _classNames_ = [''];
             }
 
-            _elemType_ = e.target.nodeName.toLowerCase(); // stylistic choice
+            _elemType_ = e.nodeName.toLowerCase(); // stylistic choice
             
             var appendedHTML = ""; // clear extra class results
 
