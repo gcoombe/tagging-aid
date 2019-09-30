@@ -3,7 +3,7 @@
     "short_name": "PendoTA",
     "version": "1.1",
     "manifest_version": 2,
-    "description": "See what ids, classes, and attributes are in the DOM. Intended for use with the Pendo Product Cloud to assist with tagging features.",
+    "description": "See what ids, classes, and attributes are in the DOM. Enhance your feature tagging experience with the Pendo Product Cloud.",
     "homepage_url": "http://pendo.io",
     "icons": {
         "16": "src/ui/images/pendo_target_16.png",
