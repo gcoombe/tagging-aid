@@ -51,7 +51,7 @@
 #_pendota-wrapper_ ._pendota_container_ {
     max-height: 600px;
     overflow-y: scroll;
-    min-height: 500px;
+    min-height: 450px;
     max-width: 380px;
     width: 380px;
     border: 2px solid rgba(0,0,0,0.3);
