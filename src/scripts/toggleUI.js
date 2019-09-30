@@ -44,6 +44,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         // Points the image source for static images stored with extension
         $('._pendota-copy-icon_').attr('src', copy_icon_url);
         $('#_pendota-target-img_').attr('src', pendo_target_url);
+        //$('#_pendota_exit_img_container_').attr('onclick', "_pendotaRemoveUI_()");
 
         // Define the basic mouseover functionality
         function startMouseover(){
@@ -80,7 +81,11 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
         // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
         window.onclick = function (e) {
-            lockSwitch(e);
+            if (e.target.id == '_pendota_exit_img_container_' || e.target.id == '_pendota_exit_img_' || _elemType_ == 'line') {
+                _pendotaRemoveUI_();
+            } else {
+                lockSwitch(e);
+            }
         };
 
         window.onkeydown = function (e) {
@@ -195,7 +200,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
     });
 }
-
 
 // Defines function to later remove the Pendo Tag Assistant UI
 function _pendotaRemoveUI_() {

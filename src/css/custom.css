@@ -43,7 +43,7 @@
 	text-indent:0;
 	text-transform:none;
     top:auto;
-    vertical-align: middle;
+    vertical-align: top;
 	visibility:visible;
     white-space:normal;
 }
@@ -190,6 +190,15 @@
 
 #_pendota-wrapper_ #_pendota_target-img_ {
     width: 40px;
+    margin: 0 auto;
+}
+
+#_pendota-wrapper_ #_pendota_exit_img_ {
+    stroke: #aaaaaa;
+}
+
+#_pendota-wrapper_ #_pendota_exit_img_container_ {
+    width: 24px;
     margin: 0 auto;
 }
 
