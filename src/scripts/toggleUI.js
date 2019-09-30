@@ -59,7 +59,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             feather.replace();
 
             // Set a status text letting the user the targeting is ready
-            document.getElementById('_pendota_status_').textContent = "Ready to inspect!  Click an element to lock info (Alt + Shift + L)";
+            document.getElementById('_pendota_status_').innerText = "Ready to inspect!  Click an element to lock info.\n(Alt + Shift + L)";
             
             window.onmouseover=(function(e) { // Defines the actual mouseover function
                 e.preventDefault();
