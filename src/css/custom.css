@@ -200,6 +200,10 @@
 #_pendota-wrapper_ #_pendota_exit_img_container_ {
     width: 24px;
     margin: 0 auto;
+}
+
+#_pendota-wrapper_ #_pendota_exit_img_,
+#_pendota-wrapper_ #_pendota_exit_img_ * {
     cursor: pointer;
 }
 
