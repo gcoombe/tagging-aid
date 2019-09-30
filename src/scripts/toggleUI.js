@@ -50,6 +50,8 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
             // Set the lock icon to starting "unlocked" state
             $('#_pendota-lock-icon_').html('<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>');
+            $('#_pendota-parent-up_').addClass("_pendota-hide-arrow_");
+            $('#_pendota-parent-down_').addClass("_pendota-hide-arrow_");
             feather.replace();
 
             // Set a status text letting the user the targeting is ready
@@ -65,60 +67,14 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                     improvement to the extension.
                 */
 
-                // Get the target element's Id and Classes    
-                _id_ = e.target.id;
+                // Move the outline to the current item
+                updateOutline(e);
 
-                _classNames_ = $(e.target).attr("class"); // jQuery's class attribute is robust, handles svg's and other unique element types
-
-                if (typeof _classNames_ != "undefined") {
-                    _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
-                        return cls != "_pendota-outline_"; // block pendota outline results from output
-                    }); 
-                    if (_classNames_.length == 0) {
-                        _classNames_ = ['']; // if the only class was _pendota-outline_ the array would be empty, resulting in .undefined as a class
-                    }
-                } else {
-                    _classNames_ = [''];
-                }
-
-                _elemType_ = e.target.nodeName.toLowerCase(); // stylistic choice
-
-                // Controls highlight box
-                $(e.target).addClass('_pendota-outline_');
-                $("*").not(e.target).removeClass('_pendota-outline_');
-                
-                var appendedHTML = ""; // clear extra class results
-
-                // Set the result boxes that are always visible
-                $('#_pendota_type-result_').val("" + _elemType_);
-                $('#_pendota_id-result_').val("#" + _id_);
-                $('#_pendota_class-result-0_').val("." + _classNames_[0]);
-                $("#_pendota_template-table_").empty();
-                
-                // Build extra class spaces
-                for (i=1; i < _classNames_.length; i++) {
-                appendedHTML = appendedHTML +
-                '<tr>' +
-                    '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
-                    '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
-                    '<td width="8%" class="_pendota_input-row_">' +
-                    '<div id="_pendota_class-result-' + i + '_" class="_pendota-copy-link_");\'>' +
-                        '<a href="#"><img src=' + copy_icon_url + ' width="20"></a>' +
-                    '</div>' +
-                    '</td>' +
-                    '</tr>';
-                }
-
-                // Append extra class spaces
-                if(_classNames_.length > 1) {
-                    $("#_pendota_template-table_").html(appendedHTML);
-                }  
+                // Update the Tagging Aid contents
+                updatePendotaContents(e);
 
                 // Define the copy function for all copy icons
-                $("._pendota-copy-link_").on("click", function(e) {
-                    e.stopPropagation();
-                    copyToClipboard(e.currentTarget.id);
-                })
+                applyCopyFunction();
             });
         };
 
@@ -137,6 +93,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             }
         };
 
+
         function lockSwitch(e) { // locks or unlocks the pendota element scanner
             e.preventDefault();
             var el = e.target;
@@ -151,6 +108,8 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
                 window.onmouseover = null;
                 $('#_pendota-lock-icon_').html('<i class="_pendota-feather-locked_" data-feather="lock"></i>');
+                $('#_pendota-parent-up_').removeClass("_pendota-hide-arrow_");
+                $('#_pendota-parent-down_').removeClass("_pendota-hide-arrow_");
                 feather.replace();
             } else { // if already locked, unlocks instead
                 startMouseover();
@@ -158,11 +117,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         }
 
         startMouseover(); // sets the scanner in motion the first time the UI is displayed
-
-        $("._pendota-copy-link_").on("click", function(e) { // applies the copy function to all copy icons
-            e.stopPropagation();
-            copyToClipboard(e.currentTarget.id);
-        }) 
 
         function copyToClipboard(inputId) { // defines the copy function
             
@@ -175,7 +129,69 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             
             // Copy the text field
             document.execCommand("copy");
+        }
+
+        function updateOutline(e) {
+            // Controls highlight box
+            $(e.target).addClass('_pendota-outline_');
+            $("*").not(e.target).removeClass('_pendota-outline_');
+        }
+
+        function applyCopyFunction() {
+            $("._pendota-copy-link_").on("click", function(e) { // applies the copy function to all copy icons
+                e.stopPropagation();
+                copyToClipboard(e.currentTarget.id);
+            }) 
+        };
+
+        applyCopyFunction();
+        
+        function updatePendotaContents(e) {
+            // Get the target element's Id and Classes    
+            _id_ = e.target.id;
+
+            _classNames_ = $(e.target).attr("class"); // jQuery's class attribute is robust, handles svg's and other unique element types
+
+            if (typeof _classNames_ != "undefined") {
+                _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
+                    return cls != "_pendota-outline_"; // block pendota outline results from output
+                }); 
+                if (_classNames_.length == 0) {
+                    _classNames_ = ['']; // if the only class was _pendota-outline_ the array would be empty, resulting in .undefined as a class
+                }
+            } else {
+                _classNames_ = [''];
             }
+
+            _elemType_ = e.target.nodeName.toLowerCase(); // stylistic choice
+            
+            var appendedHTML = ""; // clear extra class results
+
+            // Set the result boxes that are always visible
+            $('#_pendota_type-result_').val("" + _elemType_);
+            $('#_pendota_id-result_').val("#" + _id_);
+            $('#_pendota_class-result-0_').val("." + _classNames_[0]);
+            $("#_pendota_template-table_").empty();
+            
+            // Build extra class spaces
+            for (i=1; i < _classNames_.length; i++) {
+            appendedHTML = appendedHTML +
+            '<tr>' +
+                '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
+                '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
+                '<td width="8%" class="_pendota_input-row_">' +
+                '<div id="_pendota_class-result-' + i + '_" class="_pendota-copy-link_");\'>' +
+                    '<a href="#"><img class=_pendota-copy-icon_ src=' + copy_icon_url + ' width="20"></a>' +
+                '</div>' +
+                '</td>' +
+                '</tr>';
+            }
+
+            // Append extra class spaces
+            if(_classNames_.length > 1) {
+                $("#_pendota_template-table_").html(appendedHTML);
+            }  
+        }
 
     });
 }
