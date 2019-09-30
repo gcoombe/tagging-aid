@@ -188,9 +188,11 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         function applyCopyFunction() {
             $("._pendota-copy-link_").on("click", function(e) {
                 e.stopPropagation();
+                e.preventDefault();
                 copyToClipboard(e.currentTarget.id);
             }) 
         };
+
         applyCopyFunction();
         
         // Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
