@@ -1,4 +1,4 @@
-# Pendo Tagging Aid
+![](https://i.imgur.com/wwzrXUY.png)
 
 The Tagging Aid Chrome Extension was created to be used alongside the Pendo Visual Designer.  It allows for any Pendo user to inspect the HTML attributes of their web application without having to use technical interfaces like a browser developer tool.  
 ## Requirements
