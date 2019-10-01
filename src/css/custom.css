@@ -13,10 +13,12 @@
 #_pendota-wrapper_ *,
 #_pendota-wrapper_ a:hover,
 #_pendota-wrapper_ a:visited,
-#_pendota-wrapper_ a:active {
+#_pendota-wrapper_ a:active,
+#_pendota-wrapper_ *:focus {
 	background:none;
 	border:none;
     bottom:auto;
+    box-shadow: none;
     clear:none;
     color: #222222;
     cursor:default;
@@ -83,6 +85,10 @@
     height: 18px;
     width: 18px;
     stroke: #222222;
+}
+
+#_pendota-wrapper_ ._pendota-icon-locked_ * {
+    cursor: pointer;
 }
 
 #_pendota-wrapper_ ._pendota-feather-unlocked_ {

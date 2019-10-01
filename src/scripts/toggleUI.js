@@ -54,6 +54,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
             // Set the lock icon to starting "unlocked" state
             $('#_pendota-lock-icon_').html('<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>');
+            $('#_pendota-lock-icon_').removeClass('_pendota-icon-locked_');
             $('#_pendota-parent-up_').addClass("_pendota-hide-arrow_");
             $('#_pendota-parent-down_').addClass("_pendota-hide-arrow_");
             feather.replace();
@@ -107,23 +108,31 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         function lockSwitch(e) { // locks or unlocks the pendota element scanner
             e.preventDefault();
             var el = e.target;
+            var isLockIcon = false;
+            if(el.id == "_pendota-lock-icon_") {
+                isLockIcon = true;
+            }
 
-            if (el.id == "_pendota-tag-assistant_") { return; }
+            if (el.id == "_pendota-tag-assistant_" && !isLockIcon) { return; }
             while (el.parentNode) { // traverses through parent elements -- will not lock on the pendota interface
-                if (el.parentNode.id == "_pendota-tag-assistant_") { return; }
+                if (el.parentNode.id == "_pendota-lock-icon_") {
+                    isLockIcon = true;
+                }
+                if (el.parentNode.id == "_pendota-tag-assistant_" && !isLockIcon) { return; }
                 el = el.parentNode;
             }
 
-            if(window.onmouseover != null) { // if not on pendota interface, locks the scanner
+            if(window.onmouseover != null && !isLockIcon) { // if not on pendota interface, locks the scanner
                 document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
                 window.onmouseover = null;
                 $('#_pendota-lock-icon_').html('<i class="_pendota-feather-locked_" data-feather="lock"></i>');
+                $('#_pendota-lock-icon_').addClass('_pendota-icon-locked_');
                 $('#_pendota-parent-up_').removeClass("_pendota-hide-arrow_");
                 $('#_pendota-parent-down_').removeClass("_pendota-hide-arrow_");
                 feather.replace();
                 $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
                 $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
-            } else { // if already locked, unlocks instead
+            } else if (window.onmouseover == null) { // if already locked, unlocks instead
                 startMouseover();
             }
         }
@@ -191,7 +200,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         };
 
         applyCopyFunction();
-        
+
         // Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
         function updatePendotaContents(e) {
             // Get the target element's Id and Classes    
