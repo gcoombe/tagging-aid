@@ -26,6 +26,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         var _id_ = "";
         var _classNames_ = [];
         var _elemType_ = "";
+        var _data_test_id_ = "";
         var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
         var pendo_target_url = chrome.extension.getURL('/src/ui/images/pendo_target.png');
 
@@ -220,11 +221,13 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             }
 
             _elemType_ = e.nodeName.toLowerCase(); // stylistic choice
+            _data_test_id_ = $(e).data('test-id');
             
             var appendedHTML = ""; // clear extra class results
 
             // Set the result boxes that are always visible
             $('#_pendota_type-result_').val("" + _elemType_);
+            $('#_pendota_data-test-result_').val("" + _data_test_id_);
             $('#_pendota_id-result_').val("#" + _id_);
             $('#_pendota_class-result-0_').val("." + _classNames_[0]);
             $("#_pendota_template-table_").empty();

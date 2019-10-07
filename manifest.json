@@ -1,7 +1,7 @@
 {
     "name": "Pendo Tagging Aid",
     "short_name": "PendoTA",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "manifest_version": 2,
     "description": "See what ids, classes, and attributes are in the DOM. Enhance your feature tagging experience with the Pendo Product Cloud.",
     "homepage_url": "http://pendo.io",
