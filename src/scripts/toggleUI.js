@@ -88,7 +88,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                         }
                         el = el.parentNode;
                     }
-                    console.log('4 executed');
                 }).then(function() {
                     if (shouldHighlight) {
                         // Move the outline to the current item
@@ -188,6 +187,19 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 }
             }
         };
+
+        var sizzleIsActive = false;
+        document.getElementById('_pendota-sizzler-icon_').onclick = function(ev) {
+            if (!sizzleIsActive) {
+                sizzleIsActive = true;
+                $('#_pendota-sizzler-icon_').addClass('_pendota-clicked');
+                $('#_pendota-sizzler-icon_').html('Stop');
+            } else {
+                sizzleIsActive = false;
+                $('#_pendota-sizzler-icon_').removeClass('_pendota-clicked');
+                $('#_pendota-sizzler-icon_').html('Test');
+            }
+        }
 
         startMouseover(); // sets the scanner in motion the first time the UI is displayed
 
