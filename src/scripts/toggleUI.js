@@ -72,15 +72,36 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                     improvement to the extension.
                 */
 
-                // Move the outline to the current item
-                updateOutline(e.target);
+                var shouldHighlight = true;
 
-                // Set new child element in parent traversal tree
-                _pendota_elem_array_ = [];
-                _pendota_elem_array_[0] = {"obj": e.target}; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+                // Don't process mouseover if over tagging aid
+                Promise.resolve().then(function() {
+                    el = e.target;
+                    if (el.id == "_pendota-tag-assistant_") { 
+                        shouldHighlight = false;
+                        return;
+                    }
+                    while (el.parentNode) { // traverses through parent elements -- will not outline the pendota interface
+                        if (el.parentNode.id == "_pendota-tag-assistant_") { 
+                            shouldHighlight = false;
+                            return; 
+                        }
+                        el = el.parentNode;
+                    }
+                    console.log('4 executed');
+                }).then(function() {
+                    if (shouldHighlight) {
+                        // Move the outline to the current item
+                        updateOutline(e.target);
 
-                // Update the Tagging Aid contents
-                updatePendotaContents(e.target);
+                        // Set new child element in parent traversal tree
+                        _pendota_elem_array_ = [];
+                        _pendota_elem_array_[0] = {"obj": e.target}; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+
+                        // Update the Tagging Aid contents
+                        updatePendotaContents(e.target);
+                    }
+                });
 
             });
         };
