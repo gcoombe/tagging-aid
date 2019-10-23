@@ -205,10 +205,12 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 sizzleIsActive = true;
                 $('#_pendota-sizzler-icon_').addClass('_pendota-clicked');
                 $('#_pendota-sizzler-icon_').html('Stop');
+                _pendota_activate_highlight();
             } else {
                 sizzleIsActive = false;
                 $('#_pendota-sizzler-icon_').removeClass('_pendota-clicked');
                 $('#_pendota-sizzler-icon_').html('Test');
+                _pendota_deactivate_highlight();
             }
         }
 
@@ -296,31 +298,53 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             applyCopyFunction();
         }
 
+        function _pendota_activate_highlight() {
+            lazyHighlighter();
+            $(window).on("resize", function() {
+                lazyHighlighter();
+            });
+            $(window).on("scroll", function() {
+                lazyHighlighter();
+            });
+        }
+        
+        function _pendota_deactivate_highlight() {
+            $(window).off("resize");
+            $(window).off("scroll");
+            _pendota_remove_highlight();
+        }
+        
+        var lazyHighlighter = _.debounce(_pendota_highlight, 150);
+        
+        function _pendota_highlight() {
+            selector = document.getElementById('_pendota-sizzler_').value;
+            _pendota_remove_highlight();
+            if (sizzleIsActive && selector > "") {
+                const selectedElms = document.querySelectorAll(selector);
+                for (let elm of selectedElms) {
+                    var styles = elm.getBoundingClientRect();
+                    let div = document.createElement('div');
+                    div.className = '_pendota-highlight-selector_';
+                    div.style.position = 'fixed';
+                    div.style.content = '';
+                    div.style.height = `${styles.height +'px'}`;
+                    div.style.width = `${styles.width +'px'}`;
+                    div.style.top = `${styles.top + 'px'}`;
+                    div.style.right = `${styles.right + 'px'}`;
+                    div.style.bottom = `${styles.bottom + 'px'}`;
+                    div.style.left = `${styles.left + 'px'}`;
+                    div.style.background = '#EC2059';
+                    div.style.opacity = '0.25';
+                    document.body.appendChild(div);
+                }
+            }
+        }
+        
+        function _pendota_remove_highlight() {
+            $('._pendota-highlight-selector_').remove();
+        }
+
     });
-}
-
-function _pendota_highlight(selector) {
-    const selectedElms = document.querySelectorAll(selector);
-    for (let elm of selectedElms) {
-        var styles = elm.getBoundingClientRect();
-        let div = document.createElement('div');
-        div.className = '_pendota-highlight-selector_';
-        div.style.position = 'absolute';
-        div.style.content = '';
-        div.style.height = `${styles.height +'px'}`;
-        div.style.width = `${styles.width +'px'}`;
-        div.style.top = `${styles.top + 'px'}`;
-        div.style.right = `${styles.right + 'px'}`;
-        div.style.bottom = `${styles.bottom + 'px'}`;
-        div.style.left = `${styles.left + 'px'}`;
-        div.style.background = '#EC2059';
-        div.style.opacity = '0.25';
-        document.body.appendChild(div);
-    }
-}
-
-function _pendota_remove_highlight() {
-    $('._pendota-highlight-selector_').remove();
 }
 
 // Defines function to later remove the Pendo Tag Assistant UI
@@ -328,6 +352,7 @@ function _pendotaRemoveUI_() {
     _pendota_isVisible_ = false;
 
     $("#_pendota-tag-assistant_").remove(); // Remove all html
+    $('[class^="_pendota"').remove(); // Remove other pendota elements
     $("*").removeClass("_pendota-outline_"); // Remove the outline
 
     // Remove all assigned function

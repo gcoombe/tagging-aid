@@ -5,6 +5,10 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     });
 
     chrome.tabs.executeScript(tab.id, {
+      file: './src/scripts/underscore.min.js'
+    }); 
+
+    chrome.tabs.executeScript(tab.id, {
       file: './src/scripts/interact.min.js'
     }); 
 
