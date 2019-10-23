@@ -57,7 +57,7 @@
     max-width: 380px;
     width: 380px;
     border: 2px solid rgba(0,0,0,0.3);
-    border-radius: 2px;
+    border-radius: 10px;
     background: white;
     padding: 10px 20px;
     margin: 0;
@@ -147,7 +147,7 @@
 }
 
 #_pendota-wrapper_ ._pendota_form-control_ {
-    border-radius: 5px;
+    border-radius: 4px;
     padding: 5px;
     background-color: #efefef;
     width: 100%;
@@ -157,7 +157,6 @@
 
 #_pendota-wrapper_ #_pendota-sizzler_ {
     background: #fff;
-    box-shadow: inset 0 0 5 px 5px #888;
     border: 1px solid #ccc;
     border-radius: 4px;
     margin: 8px auto;
