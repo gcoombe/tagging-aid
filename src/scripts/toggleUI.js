@@ -105,13 +105,24 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             });
         };
 
-        // A click event will "lock" the fields in their current state.  Clicking again will re-enable.
+        // A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
         window.onclick = function (e) {
-            if (e.target.id == '_pendota_exit_img_container_' || e.target.id == '_pendota_exit_img_' || _elemType_ == 'line') {
-                _pendotaRemoveUI_();
-            } else {
-                lockSwitch(e);
-            }
+            el = e.target;
+            if (el.id == '_pendota_exit_img_container_' ) {_pendotaRemoveUI_()}
+            Promise.resolve().then(function() {
+                while (el.parentNode) { // traverses through parent elements to check if is the 'X' button
+                    el = el.parentNode;
+                    if (el.id == '_pendota_exit_img_container_') {
+                        _pendotaRemoveUI_();
+                        return true;
+                    }
+                    if (!el.parentNode) {
+                        return false;
+                    }
+                }
+            }).then(function(isExitBtn) {
+                if (!isExitBtn) { lockSwitch(e) }
+            });
         };
 
         window.onkeydown = function (e) {
@@ -302,7 +313,7 @@ function _pendota_highlight(selector) {
         div.style.right = `${styles.right + 'px'}`;
         div.style.bottom = `${styles.bottom + 'px'}`;
         div.style.left = `${styles.left + 'px'}`;
-        div.style.background = '#05f';
+        div.style.background = '#EC2059';
         div.style.opacity = '0.25';
         document.body.appendChild(div);
     }
@@ -321,7 +332,7 @@ function _pendotaRemoveUI_() {
 
     // Remove all assigned function
     // Do NOT use jQuery for these--more difficult to unassign and reassign
-    window.onclick = function(e) {};
-    window.onmouseover = function(e) {};
-    window.onkeydown = function(e) {};
+    window.onclick = null;
+    window.onmouseover = null;
+    window.onkeydown = null;
 }
