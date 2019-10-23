@@ -288,6 +288,30 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
     });
 }
 
+function _pendota_highlight(selector) {
+    const selectedElms = document.querySelectorAll(selector);
+    for (let elm of selectedElms) {
+        var styles = elm.getBoundingClientRect();
+        let div = document.createElement('div');
+        div.className = '_pendota-highlight-selector_';
+        div.style.position = 'absolute';
+        div.style.content = '';
+        div.style.height = `${styles.height +'px'}`;
+        div.style.width = `${styles.width +'px'}`;
+        div.style.top = `${styles.top + 'px'}`;
+        div.style.right = `${styles.right + 'px'}`;
+        div.style.bottom = `${styles.bottom + 'px'}`;
+        div.style.left = `${styles.left + 'px'}`;
+        div.style.background = '#05f';
+        div.style.opacity = '0.25';
+        document.body.appendChild(div);
+    }
+}
+
+function _pendota_remove_highlight() {
+    $('._pendota-highlight-selector_').remove();
+}
+
 // Defines function to later remove the Pendo Tag Assistant UI
 function _pendotaRemoveUI_() {
     _pendota_isVisible_ = false;
