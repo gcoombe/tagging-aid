@@ -19,6 +19,7 @@
 	border:none;
     bottom:auto;
     box-shadow: none;
+    box-sizing: border-box;
     clear:none;
     color: #222222;
     cursor:default;
@@ -245,4 +246,9 @@
 
 #_pendota-wrapper_ ._pendota-copy-icon_ {
     cursor: pointer;
+}
+
+#_pendota-wrapper_ #_pendota-button-fix_ {
+    padding-top: 8px;
+    padding-bottom: 11px;
 }
