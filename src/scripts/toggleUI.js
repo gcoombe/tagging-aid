@@ -29,8 +29,10 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         const sizzlerInputId = '_pendota-sizzler_';
         const sizzlerInputJQ = $('#' + sizzlerInputId);
         const sizzlerBtnId = '_pendota-sizzler-icon_';
-        const taggingAidId = '_pendota-tag-assistant_';
         const sizzlerBtnJQ = $('#' + sizzlerBtnId);
+        const taggingAidId = '_pendota-tag-assistant_';
+        const sizzlerCountId = '_pendota-sizzler-count_';
+        const sizzlerCountJQ = $('#' + sizzlerCountId);
         var copy_icon_url = chrome.extension.getURL('/src/ui/images/copy_icon.ico');
         var pendo_target_url = chrome.extension.getURL('/src/ui/images/pendo_target.png');
 
@@ -276,10 +278,10 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             sizzleIsActive = true;
             sizzlerBtnJQ.addClass('_pendota-clicked');
             sizzlerBtnJQ.html('Stop');
-            lazyHighlighter();
-            $(window).on("resize", lazyHighlighter);
-            $(window).on("scroll", lazyHighlighter);
-            sizzlerInputJQ.on("input", lazyHighlighter);
+            _pendota_highlight();
+            $(window).on("resize", _pendota_highlight);
+            $(window).on("scroll", _pendota_highlight);
+            sizzlerInputJQ.on("input", _pendota_highlight);
         }
 
         $('#_pendota-sizzler-form_').on('submit', function(e) {
@@ -298,6 +300,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             sizzlerBtnJQ.html('Test');
             $(window).off("resize", lazyHighlighter);
             $(window).off("scroll", lazyHighlighter);
+            sizzlerCountJQ.html('--');
             _pendota_remove_highlight();
         }
         
@@ -308,8 +311,10 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             _pendota_remove_highlight();
             if (sizzleIsActive && selector > "") {
                 const selectedElms = document.querySelectorAll(selector);
+                var numMatch = 0;
                 for (let elm of selectedElms) {
                     if (!someParentHasID(elm, taggingAidId)) {
+                        numMatch++;
                         var styles = elm.getBoundingClientRect();
                         let div = document.createElement('div');
                         div.className = '_pendota-highlight-selector_';
@@ -327,6 +332,9 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                         document.body.appendChild(div);
                     }
                 }
+                sizzlerCountJQ.html('(' + numMatch + ')');
+            } else if (sizzleIsActive && selector == "") {
+                sizzlerCountJQ.html('(0)');
             }
         }
         
