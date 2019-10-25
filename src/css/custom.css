@@ -51,6 +51,11 @@
     white-space:normal;
 }
 
+#_pendota-wrapper_ {
+    position: fixed;
+    z-index: 99999999999;
+}
+
 #_pendota-wrapper_ ._pendota_container_ {
     max-height: 600px;
     overflow-y: scroll;
@@ -101,10 +106,10 @@
 #_pendota-wrapper_ #_pendota-tag-assistant_ {
     display: block;
     position:fixed;
-    top:0;
-    right:0;
-    z-index: 99999999999;
+    top:15px;
+    right:15px;
     margin: 0 auto;
+    z-index: 99999999999;
 }
 
 #_pendota-wrapper_ #_pendota_status_ {
