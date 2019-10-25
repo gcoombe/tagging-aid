@@ -168,6 +168,10 @@
     margin: 8px auto;
 }
 
+#_pendota-wrapper_ #_pendota-sizzler-count_ {
+    text-align: center;
+}
+
 #_pendota-wrapper_ #_pendota-sizzler-icon_ {
     background: #e7e7e7;
     border: 1px solid #555;

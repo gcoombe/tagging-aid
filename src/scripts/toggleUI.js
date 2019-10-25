@@ -323,7 +323,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                         div.style.left = `${styles.left + 'px'}`;
                         div.style.background = 'rgba(236,32,89,0.25)';
                         div.style.outline = '2px double #000';
-                        div.style.zIndex = '99999999998';
+                        div.style.zIndex = '9999998';
                         document.body.appendChild(div);
                     }
                 }
