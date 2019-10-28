@@ -348,10 +348,10 @@ function _pendotaRemoveUI_() {
 
     $("#_pendota-tag-assistant_").remove(); // Remove all html
     $("*").removeClass("_pendota-outline_"); // Remove the outline
-    $('._pendota-highlight-selector_').remove(); // Remove other pendota elements
+    $('._pendota-highlight-selector_').remove(); // Remove selector highlighter
 
 
-    // Remove all assigned function
+    // Remove all assigned functions
     // Do NOT use jQuery for these--more difficult to unassign and reassign
     window.onclick = null;
     window.onmouseover = null;
