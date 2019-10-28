@@ -85,21 +85,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 var shouldHighlight = true;
 
                 // Don't process mouseover if over tagging aid
-                Promise.resolve().then(function() {
-                    el = e.target;
-                    if (el.id == taggingAidId ) { 
-                        shouldHighlight = false;
-                        return;
-                    }
-                    while (el.parentNode) { // traverses through parent elements -- will not outline the pendota interface
-                        if (el.parentNode.id == taggingAidId ) { 
-                            shouldHighlight = false;
-                            return; 
-                        }
-                        el = el.parentNode;
-                    }
-                }).then(function() {
-                    if (shouldHighlight) {
+                if(!someParentHasID(e.target, taggingAidId)) {
                         // Move the outline to the current item
                         updateOutline(e.target);
 
@@ -109,8 +95,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
                         // Update the Tagging Aid contents
                         updatePendotaContents(e.target);
-                    }
-                });
+                }
 
             });
         };
@@ -310,27 +295,32 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             selector = document.getElementById(sizzlerInputId).value;
             _pendota_remove_highlight();
             if (sizzleIsActive && selector > "") {
-                const selectedElms = document.querySelectorAll(selector);
-                var numMatch = 0;
-                for (let elm of selectedElms) {
-                    if (!someParentHasID(elm, taggingAidId)) {
-                        numMatch++;
-                        var styles = elm.getBoundingClientRect();
-                        let div = document.createElement('div');
-                        div.className = '_pendota-highlight-selector_';
-                        div.style.position = 'fixed';
-                        div.style.content = '';
-                        div.style.height = `${styles.height +'px'}`;
-                        div.style.width = `${styles.width +'px'}`;
-                        div.style.top = `${styles.top + 'px'}`;
-                        div.style.right = `${styles.right + 'px'}`;
-                        div.style.bottom = `${styles.bottom + 'px'}`;
-                        div.style.left = `${styles.left + 'px'}`;
-                        div.style.background = 'rgba(236,32,89,0.25)';
-                        div.style.outline = '2px double #000';
-                        div.style.zIndex = '9999998';
-                        document.body.appendChild(div);
+                try {
+                    const selectedElms = document.querySelectorAll(selector);
+                    var numMatch = 0;
+                    for (let elm of selectedElms) {
+                        if (!someParentHasID(elm, taggingAidId)) {
+                            numMatch++;
+                            var styles = elm.getBoundingClientRect();
+                            let div = document.createElement('div');
+                            div.className = '_pendota-highlight-selector_';
+                            div.style.position = 'fixed';
+                            div.style.content = '';
+                            div.style.height = `${styles.height +'px'}`;
+                            div.style.width = `${styles.width +'px'}`;
+                            div.style.top = `${styles.top + 'px'}`;
+                            div.style.right = `${styles.right + 'px'}`;
+                            div.style.bottom = `${styles.bottom + 'px'}`;
+                            div.style.left = `${styles.left + 'px'}`;
+                            div.style.background = 'rgba(236,32,89,0.25)';
+                            div.style.outline = '2px double #000';
+                            div.style.zIndex = '9999998';
+                            document.body.appendChild(div);
+                        }
                     }
+                }
+                catch(error) {
+                    numMatch = 0;
                 }
                 sizzlerCountJQ.html('(' + numMatch + ')');
             } else if (sizzleIsActive && selector == "") {
