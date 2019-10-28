@@ -82,8 +82,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                     improvement to the extension.
                 */
 
-                var shouldHighlight = true;
-
                 // Don't process mouseover if over tagging aid
                 if(!someParentHasID(e.target, taggingAidId)) {
                         // Move the outline to the current item
@@ -96,7 +94,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                         // Update the Tagging Aid contents
                         updatePendotaContents(e.target);
                 }
-
             });
         };
 
