@@ -16,7 +16,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
     $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') + '" rel="stylesheet">');
 
     // Append popup div to the body
-    $.get(chrome.extension.getURL('src/ui/popup.html')).then( (data) => {
+    $.get(chrome.extension.getURL('src/ui/popup.html')).then((data) => {
         $("body").append(data);
     }).then(() => { // Execute functions after appending UI
 
@@ -40,18 +40,18 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
         // Implements the interact.js library to make the assistant draggable
         interact('._pendota-draggable_').draggable({
-        listeners: {
-            move (event) {
-            position.x += event.dx
-            position.y += event.dy
+            listeners: {
+                move(event) {
+                    position.x += event.dx
+                    position.y += event.dy
 
-            event.target.style.transform =
-                `translate(${position.x}px, ${position.y}px)`
+                    event.target.style.transform =
+                        `translate(${position.x}px, ${position.y}px)`
 
-            lazyHighlighter()
-            },
+                    lazyHighlighter()
+                },
 
-        }
+            }
         })
 
         // Points the image source for static images stored with extension
@@ -60,7 +60,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
         //$('#_pendota_exit_img_container_').attr('onclick', "_pendotaRemoveUI_()");
 
         // Define the basic mouseover functionality
-        function startMouseover(){
+        function startMouseover() {
 
             // Set the lock icon to starting "unlocked" state
             $('#_pendota-lock-icon_').html('<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>');
@@ -71,8 +71,8 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
             // Set a status text letting the user the targeting is ready
             document.getElementById('_pendota_status_').innerText = "Ready to inspect!  Click an element to lock info.\n(Alt + Shift + L)";
-            
-            window.onmouseover=(function(e) { // Defines the actual mouseover function
+
+            window.onmouseover = (function(e) { // Defines the actual mouseover function
                 e.preventDefault();
                 /* 
                     preventDefault() stops the regular actions that take place on a webpage
@@ -83,37 +83,36 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 */
 
                 // Don't process mouseover if over tagging aid
-                if(!someParentHasID(e.target, taggingAidId)) {
-                        // Move the outline to the current item
-                        updateOutline(e.target);
+                if (!someParentHasID(e.target, taggingAidId)) {
+                    // Move the outline to the current item
+                    updateOutline(e.target);
 
-                        // Set new child element in parent traversal tree
-                        _pendota_elem_array_ = [];
-                        _pendota_elem_array_[0] = {"obj": e.target}; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+                    // Set new child element in parent traversal tree
+                    _pendota_elem_array_ = [];
+                    _pendota_elem_array_[0] = { "obj": e.target }; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
 
-                        // Update the Tagging Aid contents
-                        updatePendotaContents(e.target);
+                    // Update the Tagging Aid contents
+                    updatePendotaContents(e.target);
                 }
             });
         };
 
         // A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
-        window.onclick = function (e) {
+        window.onclick = function(e) {
             el = e.target;
-            if (someParentHasID(el,'_pendota_exit_img_container_')) {
+            if (someParentHasID(el, '_pendota_exit_img_container_')) {
                 _pendotaRemoveUI_();
-            }
-            else {
+            } else {
                 lockSwitch(e);
             }
         };
 
-        window.onkeydown = function (e) {
-            if(e.altKey && e.shiftKey && e.keyCode == 76) { // alt + shift + L to lock/unlock
+        window.onkeydown = function(e) {
+            if (e.altKey && e.shiftKey && e.keyCode == 76) { // alt + shift + L to lock/unlock
                 lockSwitch(e);
             }
 
-            if(e.keyCode == 27) { // ESC to exit pendota UI
+            if (e.keyCode == 27) { // ESC to exit pendota UI
                 _pendotaRemoveUI_();
             }
         };
@@ -123,7 +122,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             e.preventDefault();
             var el = e.target;
 
-            if(window.onmouseover != null && !someParentHasID(el, taggingAidId)) { // if not on pendota interface, locks the scanner
+            if (window.onmouseover != null && !someParentHasID(el, taggingAidId)) { // if not on pendota interface, locks the scanner
                 document.getElementById('_pendota_status_').textContent = "Element Locked.  Click anywhere to reset.";
                 window.onmouseover = null;
                 $('#_pendota-lock-icon_').html('<i class="_pendota-feather-locked_" data-feather="lock"></i>');
@@ -131,15 +130,15 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 $('#_pendota-parent-up_').removeClass("_pendota-hide-arrow_");
                 $('#_pendota-parent-down_').removeClass("_pendota-hide-arrow_");
                 feather.replace();
-                $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
-                $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
-            } else if (window.onmouseover == null && (!someParentHasID(el,taggingAidId) || someParentHasID(el, '_pendota-lock-icon_'))) { // if already locked, unlocks instead
+                $('#_pendota-feather-up-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-active-arrow_");
+                $('#_pendota-feather-down-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-disabled-arrow_");
+            } else if (window.onmouseover == null && (!someParentHasID(el, taggingAidId) || someParentHasID(el, '_pendota-lock-icon_'))) { // if already locked, unlocks instead
                 startMouseover();
             }
         }
 
         // Sets the onclick function for the parent tree traversal upwards
-        document.getElementById('_pendota-parent-up_').onclick = function (ev) {
+        document.getElementById('_pendota-parent-up_').onclick = function(ev) {
             currentElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
             if (currentElem["obj"].nodeName.toLowerCase() != "html") {
                 parentElem = {};
@@ -147,24 +146,24 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 _pendota_elem_array_.push(parentElem);
                 updatePendotaContents(parentElem["obj"]);
                 updateOutline(parentElem["obj"]);
-                $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
-                if(parentElem["obj"].nodeName.toLowerCase() == "html") {
-                    $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
+                $('#_pendota-feather-down-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-active-arrow_");
+                if (parentElem["obj"].nodeName.toLowerCase() == "html") {
+                    $('#_pendota-feather-up-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-disabled-arrow_");
                 }
             }
         };
 
         // Sets the onclick funtion for the parent tree traveral downwards
-        document.getElementById('_pendota-parent-down_').onclick = function (ev) {
+        document.getElementById('_pendota-parent-down_').onclick = function(ev) {
             currentElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
             if (_pendota_elem_array_.length > 1) {
                 _pendota_elem_array_.pop();
                 childElem = _pendota_elem_array_[_pendota_elem_array_.length - 1];
                 updatePendotaContents(childElem["obj"]);
                 updateOutline(childElem["obj"]);
-                $('#_pendota-feather-up-arrow_').attr("class","_pendota-parent-arrow_ _pendota-active-arrow_");
-                if(_pendota_elem_array_.length == 1) {
-                    $('#_pendota-feather-down-arrow_').attr("class","_pendota-parent-arrow_ _pendota-disabled-arrow_");
+                $('#_pendota-feather-up-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-active-arrow_");
+                if (_pendota_elem_array_.length == 1) {
+                    $('#_pendota-feather-down-arrow_').attr("class", "_pendota-parent-arrow_ _pendota-disabled-arrow_");
                 }
             }
         };
@@ -176,14 +175,14 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 
         // Define the copy function
         function copyToClipboard(inputId) {
-            
+
             // Get the text field
             var copyText = document.getElementById(inputId);
-            
+
             // Select the text field
             copyText.select();
             copyText.setSelectionRange(0, 99999); // For mobile devices
-            
+
             // Copy the text field
             document.execCommand("copy");
         }
@@ -200,7 +199,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 e.stopPropagation();
                 e.preventDefault();
                 copyToClipboard(e.currentTarget.id);
-            }) 
+            })
         };
 
         applyCopyFunction();
@@ -215,7 +214,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             if (typeof _classNames_ != "undefined") {
                 _classNames_ = _classNames_.split(/\s+/).filter((cls) => { // should not split on just ' ' because classes can be separated by other forms of whitespace
                     return cls != "_pendota-outline_"; // block pendota outline results from output
-                }); 
+                });
                 if (_classNames_.length == 0) {
                     _classNames_ = ['']; // if the only class was _pendota-outline_ the array would be empty, resulting in .undefined as a class
                 }
@@ -224,7 +223,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             }
 
             _elemType_ = e.nodeName.toLowerCase(); // stylistic choice
-            
+
             var appendedHTML = ""; // clear extra class results
 
             // Set the result boxes that are always visible
@@ -232,30 +231,31 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             $('#_pendota_id-result_').val("#" + _id_);
             $('#_pendota_class-result-0_').val("." + _classNames_[0]);
             $("#_pendota_template-table_").empty();
-            
+
             // Build extra class spaces
-            for (i=1; i < _classNames_.length; i++) {
-            appendedHTML = appendedHTML +
-            '<tr>' +
-                '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
-                '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
-                '<td width="8%" class="_pendota_input-row_">' +
-                '<div id="_pendota_class-result-' + i + '_" class="_pendota-copy-link_");\'>' +
+            for (i = 1; i < _classNames_.length; i++) {
+                appendedHTML = appendedHTML +
+                    '<tr>' +
+                    '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' + i + '_" value=".' + _classNames_[i] + '" readonly></td>' +
+                    '<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
+                    '<td width="8%" class="_pendota_input-row_">' +
+                    '<div id="_pendota_class-result-' + i + '_" class="_pendota-copy-link_");\'>' +
                     '<a href="#"><img class=_pendota-copy-icon_ src=' + copy_icon_url + ' width="20"></a>' +
-                '</div>' +
-                '</td>' +
-                '</tr>';
+                    '</div>' +
+                    '</td>' +
+                    '</tr>';
             }
 
             // Append extra class spaces
-            if(_classNames_.length > 1) {
+            if (_classNames_.length > 1) {
                 $("#_pendota_template-table_").html(appendedHTML);
-            }  
+            }
 
             // Define the copy function for all copy icons
             applyCopyFunction();
         }
 
+        // Turns on sizzle highlighting function and adjusts visuals to match
         function _pendotaActivateHighlight() {
             sizzleIsActive = true;
             sizzlerBtnJQ.addClass('_pendota-clicked');
@@ -266,16 +266,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             sizzlerInputJQ.on("input", _pendota_highlight);
         }
 
-        $('#_pendota-sizzler-form_').on('submit', function(e) {
-            e.preventDefault();
-            _pendotaToggleHighlight();
-        })
-        
-        function _pendotaToggleHighlight() {
-            if (sizzleIsActive) _pendotaDeactivateHighlight();
-            else _pendotaActivateHighlight();
-        }
-
+        // Turns off sizzle highlighting and adjusts visuals to match
         function _pendotaDeactivateHighlight() {
             sizzleIsActive = false;
             sizzlerBtnJQ.removeClass('_pendota-clicked');
@@ -285,9 +276,20 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             sizzlerCountJQ.html('--');
             _pendota_remove_highlight();
         }
-        
-        var lazyHighlighter = _.debounce(_pendota_highlight, 150);
-        
+
+        // Swaps between activated and deactivated status for sizzle highlighting
+        function _pendotaToggleHighlight() {
+            if (sizzleIsActive) _pendotaDeactivateHighlight();
+            else _pendotaActivateHighlight();
+        }
+
+        // Call highlight toggler when clicking enter
+        $('#_pendota-sizzler-form_').on('submit', function(e) {
+            e.preventDefault();
+            _pendotaToggleHighlight();
+        })
+
+        // Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
         function _pendota_highlight() {
             selector = document.getElementById(sizzlerInputId).value;
             _pendota_remove_highlight();
@@ -315,8 +317,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                             document.body.appendChild(div);
                         }
                     }
-                }
-                catch(error) {
+                } catch (error) {
                     numMatch = 0;
                 }
                 sizzlerCountJQ.html('(' + numMatch + ')');
@@ -324,7 +325,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                 sizzlerCountJQ.html('(0)');
             }
         }
-        
+
         function _pendota_remove_highlight() {
             $('._pendota-highlight-selector_').remove();
         }
@@ -336,7 +337,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
 function someParentHasID(element, idName) {
     if (!element) return null;
     else if ((element.id != null) && (element.id == idName)) return true;
-    else return (!element.parentNode ? false : someParentHasID(element.parentNode,idName));
+    else return (!element.parentNode ? false : someParentHasID(element.parentNode, idName));
 }
 
 // Defines function to later remove the Pendo Tag Assistant UI
