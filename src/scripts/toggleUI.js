@@ -47,7 +47,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                     event.target.style.transform =
                         `translate(${position.x}px, ${position.y}px)`
 
-                    lazyHighlighter()
+                    _pendota_highlight();
                 },
 
             }
@@ -270,8 +270,8 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
             sizzleIsActive = false;
             sizzlerBtnJQ.removeClass('_pendota-clicked');
             sizzlerBtnJQ.html('Test');
-            $(window).off("resize", lazyHighlighter);
-            $(window).off("scroll", lazyHighlighter);
+            $(window).off("resize", _pendota_highlight);
+            $(window).off("scroll", _pendota_highlight);
             sizzlerCountJQ.html('--');
             _pendota_remove_highlight();
         }
