@@ -12,7 +12,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
     _pendota_isVisible_ = true;
 
     // Append CSS File to head
-    //$("head").append('<link href="' + chrome.extension.getURL('src/css/bootstrap.min.css') + '" rel="stylesheet">');
     $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') + '" rel="stylesheet">');
 
     // Append popup div to the body
