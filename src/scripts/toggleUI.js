@@ -47,7 +47,6 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
                     event.target.style.transform =
                         `translate(${position.x}px, ${position.y}px)`
 
-                    _pendota_highlight();
                 },
 
             }
