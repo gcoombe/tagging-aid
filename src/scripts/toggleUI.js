@@ -15,7 +15,7 @@ function _pendotaInsertUI_() { //Injects the tag assistant UI
     $("head").append('<link href="' + chrome.extension.getURL('src/css/custom.css') + '" rel="stylesheet">');
 
     // Append popup div to the body
-    $.get(chrome.extension.getURL('src/ui/popup.html')).then((data) => {
+    $.get(chrome.extension.getURL('src/ui/pendota.html')).then((data) => {
         $("body").append(data);
     }).then(() => { // Execute functions after appending UI
 
@@ -342,7 +342,7 @@ function someParentHasID(element, idName) {
 function _pendotaRemoveUI_() {
     _pendota_isVisible_ = false;
 
-    $("#_pendota-tag-assistant_").remove(); // Remove all html
+    $("#_pendota-wrapper_").remove(); // Remove all html
     $("*").removeClass("_pendota-outline_"); // Remove the outline
     $('._pendota-highlight-selector_').remove(); // Remove selector highlighter
 
