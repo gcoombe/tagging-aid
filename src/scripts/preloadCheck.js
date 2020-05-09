@@ -4,7 +4,7 @@
 */
 
 var elt = document.createElement("script");
-elt.innerHTML = "window.postMessage({ type: 'FROM_PAGE', designerEnabled: window.pendo.designerEnabled }, '*');";
+elt.innerHTML = "window.postMessage({ type: 'FROM_PAGE', designerEnabled: window.pendo.designerEnabled || window.pendo.designerLaunched }, '*');";
 document.head.appendChild(elt);
 
 if (!window.sendMsgToExt) { // only add the listener once
