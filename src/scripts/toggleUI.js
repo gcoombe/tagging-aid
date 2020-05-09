@@ -7,10 +7,12 @@ if (typeof _pendota_isVisible_ == "undefined" || !_pendota_isVisible_) {
 
 // Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
 var _pendota_elem_array_ = [];
+var lockListener, keyLockListener, mouseoverListener;
 
 function _pendotaInsertUI_() {
 	//Injects the tag assistant UI
 	_pendota_isVisible_ = true;
+	_pendota_isLocked_ = false;
 
 	// Append CSS File to head
 	$("head").append(
@@ -80,35 +82,34 @@ function _pendotaInsertUI_() {
 				// Set a status text letting the user the targeting is ready
 				document.getElementById("_pendota_status_").innerText =
 					"Ready to inspect!  Click an element to lock info.\n(Alt + Shift + L)";
-
-				window.onmouseover = function (e) {
-					// Defines the actual mouseover function
-					e.preventDefault();
-					/* 
-                    preventDefault() stops the regular actions that take place on a webpage
-                    e.g. follow a link, submit form, etc.
-                    It does NOT stop custom javascript interactions (e.g. show a modal).
-                    Figuring out how to temporarily freeze these actions would be a good overall
-                    improvement to the extension.
-                */
-
-					// Don't process mouseover if over tagging aid
-					if (!someParentHasID(e.target, taggingAidId)) {
-						// Move the outline to the current item
-						updateOutline(e.target);
-
-						// Set new child element in parent traversal tree
-						_pendota_elem_array_ = [];
-						_pendota_elem_array_[0] = { obj: e.target }; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
-
-						// Update the Tagging Aid contents
-						updatePendotaContents(e.target);
-					}
-				};
+                
+                if (typeof mouseoverListener === "undefined") {
+                    mouseoverListener = function (e) {
+                        // Defines the actual mouseover function
+                        e.preventDefault();
+                        e.stopPropagation();
+    
+                        // Don't process mouseover if over tagging aid
+                        if (!someParentHasID(e.target, taggingAidId)) {
+                            // Move the outline to the current item
+                            updateOutline(e.target);
+    
+                            // Set new child element in parent traversal tree
+                            _pendota_elem_array_ = [];
+                            _pendota_elem_array_[0] = { obj: e.target }; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+    
+                            // Update the Tagging Aid contents
+                            updatePendotaContents(e.target);
+                        }
+                    };
+                }
+			    window.addEventListener('mouseover', mouseoverListener, true);
 			}
 
 			// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
-			window.onclick = function (e) {
+			lockListener = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 				el = e.target;
 				if (someParentHasID(el, "_pendota_exit_img_container_")) {
 					_pendotaRemoveUI_();
@@ -116,8 +117,9 @@ function _pendotaInsertUI_() {
 					lockSwitch(e);
 				}
 			};
+			window.addEventListener("click", lockListener, true);
 
-			window.onkeydown = function (e) {
+            keyLockListener = function (e) {
 				if (e.altKey && e.shiftKey && e.keyCode == 76) {
 					// alt + shift + L to lock/unlock
 					lockSwitch(e);
@@ -127,21 +129,19 @@ function _pendotaInsertUI_() {
 					// ESC to exit pendota UI
 					_pendotaRemoveUI_();
 				}
-			};
+            };
+            window.addEventListener('keydown', keyLockListener);
 
 			function lockSwitch(e) {
 				// locks or unlocks the pendota element scanner
 				e.preventDefault();
 				var el = e.target;
 
-				if (
-					window.onmouseover != null &&
-					!someParentHasID(el, taggingAidId)
-				) {
+				if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
 					// if not on pendota interface, locks the scanner
 					document.getElementById("_pendota_status_").textContent =
 						"Element Locked.  Click anywhere to reset.";
-					window.onmouseover = null;
+					window.removeEventListener('mouseover', mouseoverListener, true);
 					$("#_pendota-lock-icon_").html(
 						'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
 					);
@@ -161,65 +161,71 @@ function _pendotaInsertUI_() {
 						"class",
 						"_pendota-parent-arrow_ _pendota-disabled-arrow_"
 					);
+					_pendota_isLocked_ = true;
 				} else if (
-					window.onmouseover == null &&
+					_pendota_isLocked_ &&
 					(!someParentHasID(el, taggingAidId) ||
 						someParentHasID(el, "_pendota-lock-icon_"))
 				) {
 					// if already locked, unlocks instead
 					startMouseover();
+					_pendota_isLocked_ = false;
 				}
 			}
 
 			// Sets the onclick function for the parent tree traversal upwards
-			document.getElementById("_pendota-parent-up_").onclick = function (
-				ev
-			) {
-				currentElem =
-					_pendota_elem_array_[_pendota_elem_array_.length - 1];
-				if (currentElem["obj"].nodeName.toLowerCase() != "html") {
-					parentElem = {};
-					parentElem["obj"] = currentElem["obj"].parentNode; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
-					_pendota_elem_array_.push(parentElem);
-					updatePendotaContents(parentElem["obj"]);
-					updateOutline(parentElem["obj"]);
-					$("#_pendota-feather-down-arrow_").attr(
-						"class",
-						"_pendota-parent-arrow_ _pendota-active-arrow_"
-					);
-					if (parentElem["obj"].nodeName.toLowerCase() == "html") {
-						$("#_pendota-feather-up-arrow_").attr(
-							"class",
-							"_pendota-parent-arrow_ _pendota-disabled-arrow_"
-						);
-					}
-				}
-			};
-
-			// Sets the onclick funtion for the parent tree traversal downwards
-			document.getElementById(
-				"_pendota-parent-down_"
-			).onclick = function (ev) {
-				currentElem =
-					_pendota_elem_array_[_pendota_elem_array_.length - 1];
-				if (_pendota_elem_array_.length > 1) {
-					_pendota_elem_array_.pop();
-					childElem =
+			document
+				.getElementById("_pendota-parent-up_")
+				.addEventListener("click", function (ev) {
+					currentElem =
 						_pendota_elem_array_[_pendota_elem_array_.length - 1];
-					updatePendotaContents(childElem["obj"]);
-					updateOutline(childElem["obj"]);
-					$("#_pendota-feather-up-arrow_").attr(
-						"class",
-						"_pendota-parent-arrow_ _pendota-active-arrow_"
-					);
-					if (_pendota_elem_array_.length == 1) {
+					if (currentElem["obj"].nodeName.toLowerCase() != "html") {
+						parentElem = {};
+						parentElem["obj"] = currentElem["obj"].parentNode; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+						_pendota_elem_array_.push(parentElem);
+						updatePendotaContents(parentElem["obj"]);
+						updateOutline(parentElem["obj"]);
 						$("#_pendota-feather-down-arrow_").attr(
 							"class",
-							"_pendota-parent-arrow_ _pendota-disabled-arrow_"
+							"_pendota-parent-arrow_ _pendota-active-arrow_"
 						);
+						if (
+							parentElem["obj"].nodeName.toLowerCase() == "html"
+						) {
+							$("#_pendota-feather-up-arrow_").attr(
+								"class",
+								"_pendota-parent-arrow_ _pendota-disabled-arrow_"
+							);
+						}
 					}
-				}
-			};
+				});
+
+			// Sets the onclick funtion for the parent tree traversal downwards
+			document
+				.getElementById("_pendota-parent-down_")
+				.addEventListener("click", function (ev) {
+					currentElem =
+						_pendota_elem_array_[_pendota_elem_array_.length - 1];
+					if (_pendota_elem_array_.length > 1) {
+						_pendota_elem_array_.pop();
+						childElem =
+							_pendota_elem_array_[
+								_pendota_elem_array_.length - 1
+							];
+						updatePendotaContents(childElem["obj"]);
+						updateOutline(childElem["obj"]);
+						$("#_pendota-feather-up-arrow_").attr(
+							"class",
+							"_pendota-parent-arrow_ _pendota-active-arrow_"
+						);
+						if (_pendota_elem_array_.length == 1) {
+							$("#_pendota-feather-down-arrow_").attr(
+								"class",
+								"_pendota-parent-arrow_ _pendota-disabled-arrow_"
+							);
+						}
+					}
+				});
 
 			var sizzleIsActive = false;
 			sizzlerBtnJQ.on("click", _pendotaToggleHighlight);
@@ -415,8 +421,7 @@ function _pendotaRemoveUI_() {
 	$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
 
 	// Remove all assigned functions
-	// Do NOT use jQuery for these--more difficult to unassign and reassign
-	window.onclick = null;
-	window.onmouseover = null;
-	window.onkeydown = null;
+	window.removeEventListener("click", lockListener, true);
+	window.removeEventListener("mouseover", mouseoverListener, true);
+	window.removeEventListener("keydown", keyLockListener);
 }
