@@ -440,7 +440,7 @@ function _pendotaRemoveUI_() {
 	_pendota_isVisible_ = false;
 
 	$("#_pendota-wrapper_").remove(); // Remove all html
-	$("*").removeClass("_pendota-outline_"); // Remove the outline
+	$("._pendota-outline_").remove(); // Remove the outline
 	$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
 
 	// Remove all assigned functions
