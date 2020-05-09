@@ -1,41 +1,41 @@
 :root {
-    --pendo-teal: #128297;
-    --pendo-dark-teal: #016479;
-    --pendo-pink: #EC2059;
-    --pendo-charcoal: #2f3641;
+	--pendo-teal: #128297;
+	--pendo-dark-teal: #016479;
+	--pendo-pink: #ec2059;
+	--pendo-charcoal: #2f3641;
 }
 
 body {
-    margin: 24px;
-    min-width: 200px;
+	margin: 24px;
+	min-width: 200px;
 }
 
 #pendota-popup-wrapper {
-    font-size: 14px;
+	font-size: 14px;
 }
 
 .popup-button {
-    background-color: var(--pendo-teal);
-    border-color: var(--pendo-teal);
-    border-radius: 3px;
-    color: white;
-    cursor: pointer;
-    display: block;
-    font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    margin: 16px auto;
-    padding: 8px 8px;
-    transition: 0.2s;
-    width: 220px;
+	background-color: var(--pendo-teal);
+	border-color: var(--pendo-teal);
+	border-radius: 3px;
+	color: white;
+	cursor: pointer;
+	display: block;
+	font-family: proxima-nova, Helvetica Neue, Arial, sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	margin: 16px auto;
+	padding: 8px 8px;
+	transition: 0.2s;
+	width: 220px;
 }
 
 .popup-button:hover {
-    background-color: var(--pendo-dark-teal);
-    border-color: var(--pendo-dark-teal);
-    text-decoration: none;
+	background-color: var(--pendo-dark-teal);
+	border-color: var(--pendo-dark-teal);
+	text-decoration: none;
 }
 
 .popup-button:focus {
-    outline: 0;
+	outline: 0;
 }
