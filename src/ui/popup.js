@@ -1,4 +1,5 @@
 chrome.runtime.onMessage.addListener(
+    // Display loading message until receive information about whether designer is open
     function(request, sender, sendResponse) {
     console.log(sender.tab ?
                     "from a content script:" + sender.tab.url :
@@ -17,6 +18,7 @@ chrome.runtime.onMessage.addListener(
     }
 });
 
+// Triggers script that sends message about whether designer is open
 chrome.tabs.executeScript({
     file: "./src/scripts/preloadCheck.js",
 })
