@@ -7,7 +7,11 @@ if (typeof _pendota_isVisible_ == "undefined" || !_pendota_isVisible_) {
 
 // Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
 var _pendota_elem_array_ = [];
-var lockListener, keyLockListener, mouseoverListener;
+var lockListener, keyLockListener, mouseoverListener, blockerFunction;
+mouseoverBlocker = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
 
 function _pendotaInsertUI_() {
 	//Injects the tag assistant UI
@@ -103,6 +107,7 @@ function _pendotaInsertUI_() {
                         }
                     };
                 }
+                window.removeEventListener("mouseover", blockerFunction, true);
 			    window.addEventListener('mouseover', mouseoverListener, true);
 			}
 
@@ -141,7 +146,8 @@ function _pendotaInsertUI_() {
 					// if not on pendota interface, locks the scanner
 					document.getElementById("_pendota_status_").textContent =
 						"Element Locked.  Click anywhere to reset.";
-					window.removeEventListener('mouseover', mouseoverListener, true);
+                    window.removeEventListener('mouseover', mouseoverListener, true);
+                    window.addEventListener('mouseover', blockerFunction, true);
 					$("#_pendota-lock-icon_").html(
 						'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
 					);
@@ -423,6 +429,7 @@ function _pendotaRemoveUI_() {
 
 	// Remove all assigned functions
 	window.removeEventListener("click", lockListener, true);
-	window.removeEventListener("mouseover", mouseoverListener, true);
+    window.removeEventListener("mouseover", mouseoverListener, true);
+    window.removeEventListener("mouseover", blockerFunction, true);
 	window.removeEventListener("keydown", keyLockListener);
 }
