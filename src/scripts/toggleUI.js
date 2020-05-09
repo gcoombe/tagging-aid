@@ -86,8 +86,8 @@ function _pendotaInsertUI_() {
 				feather.replace();
 
 				// Set a status text letting the user the targeting is ready
-				document.getElementById("_pendota_status_").innerText =
-					"Ready to inspect!  Click an element to lock info.\n(Alt + Shift + L)";
+				document.getElementById("_pendota_status_").innerHTML =
+					"Click anywhere to Inspect. (Alt + Shift + L)";
                 
                 if (typeof mouseoverListener === "undefined") {
                     mouseoverListener = function (e) {

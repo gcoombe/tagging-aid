@@ -114,11 +114,12 @@
 
 #_pendota-wrapper_ #_pendota_status_ {
     /* avoid an excessively wide status text */
-    font-size: 11px;
-    margin: 0 auto;
+    font-size: 12px;
+    font-weight: 500;
+    margin: auto;
     min-height: 32px;
     padding-left: 5px;
-    padding-top: 5px; 
+    padding-top: 10px; 
 }
 
 #_pendota-wrapper_ ._pendota-button_ {
@@ -179,6 +180,7 @@
     background: #e7e7e7;
     border: 1px solid #555;
     border-radius: 4px;
+    cursor: pointer;
     font-size: 12px;
     margin: 8px auto;
     padding: 5px 8px;
