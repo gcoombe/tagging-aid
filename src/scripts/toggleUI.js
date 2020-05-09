@@ -109,7 +109,6 @@ function _pendotaInsertUI_() {
 			// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
 			lockListener = function (e) {
                 e.preventDefault();
-                e.stopPropagation();
 				el = e.target;
 				if (someParentHasID(el, "_pendota_exit_img_container_")) {
 					_pendotaRemoveUI_();
@@ -138,6 +137,7 @@ function _pendotaInsertUI_() {
 				var el = e.target;
 
 				if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
+                    e.stopPropagation();
 					// if not on pendota interface, locks the scanner
 					document.getElementById("_pendota_status_").textContent =
 						"Element Locked.  Click anywhere to reset.";
@@ -167,6 +167,7 @@ function _pendotaInsertUI_() {
 					(!someParentHasID(el, taggingAidId) ||
 						someParentHasID(el, "_pendota-lock-icon_"))
 				) {
+                    e.stopPropagation();
 					// if already locked, unlocks instead
 					startMouseover();
 					_pendota_isLocked_ = false;
