@@ -8,7 +8,7 @@ if (typeof _pendota_isVisible_ == "undefined" || !_pendota_isVisible_) {
 // Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
 var _pendota_elem_array_ = [];
 var lockListener, keyLockListener, mouseoverListener, blockerFunction;
-mouseoverBlocker = function(e) {
+blockerFunction = function(e) {
     e.preventDefault();
     e.stopPropagation();
 }
