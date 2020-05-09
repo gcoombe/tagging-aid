@@ -14,17 +14,22 @@ function _pendotaInsertUI_() {
 	_pendota_isVisible_ = true;
 	_pendota_isLocked_ = false;
 
-	// Append CSS File to head
-	$("head").append(
-		'<link href="' +
-			chrome.extension.getURL("src/css/custom.css") +
-			'" rel="stylesheet">'
+    // Append CSS File to head
+    var cssSrc = document.createElement("link");
+    cssSrc.setAttribute("href", chrome.extension.getURL("src/css/custom.css"));
+    cssSrc.setAttribute("rel", "stylesheet");
+	document.head.appendChild(
+		cssSrc
 	);
 
 	// Append popup div to the body
-	$.get(chrome.extension.getURL("src/ui/pendota.html"))
-		.then((data) => {
-			$("body").append(data);
+	fetch(chrome.extension.getURL("src/ui/pendota.html"))
+        .then((response) => response.text())
+        .then((data) => {
+            var pendotaUI = document.createElement("div");
+            pendotaUI.id = "_pendota-wrapper_";
+            pendotaUI.innerHTML = data;
+			document.body.appendChild(pendotaUI);
 		})
 		.then(() => {
 			// Execute functions after appending UI
@@ -36,12 +41,9 @@ function _pendotaInsertUI_() {
 			var _classNames_ = [];
 			var _elemType_ = "";
 			const sizzlerInputId = "_pendota-sizzler_";
-			const sizzlerInputJQ = $("#" + sizzlerInputId);
 			const sizzlerBtnId = "_pendota-sizzler-icon_";
-			const sizzlerBtnJQ = $("#" + sizzlerBtnId);
 			const taggingAidId = "_pendota-tag-assistant_";
 			const sizzlerCountId = "_pendota-sizzler-count_";
-			const sizzlerCountJQ = $("#" + sizzlerCountId);
 			var copy_icon_url = chrome.extension.getURL(
 				"/src/ui/images/copy_icon.ico"
 			);
@@ -66,7 +68,6 @@ function _pendotaInsertUI_() {
 			// Points the image source for static images stored with extension
 			$("._pendota-copy-icon_").attr("src", copy_icon_url);
 			$("#_pendota-target-img_").attr("src", pendo_target_url);
-			//$('#_pendota_exit_img_container_').attr('onclick', "_pendotaRemoveUI_()");
 
 			// Define the basic mouseover functionality
 			function startMouseover() {
@@ -109,7 +110,6 @@ function _pendotaInsertUI_() {
 			// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
 			lockListener = function (e) {
                 e.preventDefault();
-                e.stopPropagation();
 				el = e.target;
 				if (someParentHasID(el, "_pendota_exit_img_container_")) {
 					_pendotaRemoveUI_();
@@ -138,6 +138,7 @@ function _pendotaInsertUI_() {
 				var el = e.target;
 
 				if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
+                    e.stopPropagation();
 					// if not on pendota interface, locks the scanner
 					document.getElementById("_pendota_status_").textContent =
 						"Element Locked.  Click anywhere to reset.";
@@ -167,7 +168,8 @@ function _pendotaInsertUI_() {
 					(!someParentHasID(el, taggingAidId) ||
 						someParentHasID(el, "_pendota-lock-icon_"))
 				) {
-					// if already locked, unlocks instead
+                    // if already locked, unlocks instead
+                    e.stopPropagation();
 					startMouseover();
 					_pendota_isLocked_ = false;
 				}
@@ -227,8 +229,9 @@ function _pendotaInsertUI_() {
 					}
 				});
 
-			var sizzleIsActive = false;
-			sizzlerBtnJQ.on("click", _pendotaToggleHighlight);
+            var sizzleIsActive = false;
+            console.log(document.getElementById(sizzlerBtnId));
+			document.getElementById(sizzlerBtnId).addEventListener("click", _pendotaToggleHighlight);
 
 			startMouseover(); // sets the scanner in motion the first time the UI is displayed
 
@@ -326,22 +329,22 @@ function _pendotaInsertUI_() {
 			// Turns on sizzle highlighting function and adjusts visuals to match
 			function _pendotaActivateHighlight() {
 				sizzleIsActive = true;
-				sizzlerBtnJQ.addClass("_pendota-clicked");
-				sizzlerBtnJQ.html("Stop");
+				document.getElementById(sizzlerBtnId).classList.add("_pendota-clicked");
+				document.getElementById(sizzlerBtnId).innerHTML = "Stop";
 				_pendota_highlight();
 				$(window).on("resize", _pendota_highlight);
 				$(window).on("scroll", _pendota_highlight);
-				sizzlerInputJQ.on("input", _pendota_highlight);
+				document.getElementById(sizzlerInputId).addEventListener("input", _pendota_highlight);
 			}
 
 			// Turns off sizzle highlighting and adjusts visuals to match
 			function _pendotaDeactivateHighlight() {
 				sizzleIsActive = false;
-				sizzlerBtnJQ.removeClass("_pendota-clicked");
-				sizzlerBtnJQ.html("Test");
+				document.getElementById(sizzlerBtnId).classList.remove("_pendota-clicked");
+				document.getElementById(sizzlerBtnId).innerHTML = "Test";
 				$(window).off("resize", _pendota_highlight);
 				$(window).off("scroll", _pendota_highlight);
-				sizzlerCountJQ.html("--");
+				document.getElementById(sizzlerCountId).innerHTML = "--";
 				_pendota_remove_highlight();
 			}
 
@@ -390,9 +393,9 @@ function _pendotaInsertUI_() {
 					} catch (error) {
 						numMatch = 0;
 					}
-					sizzlerCountJQ.html("(" + numMatch + ")");
+					document.getElementById(sizzlerCountId).innerHTML = "(" + numMatch + ")";
 				} else if (sizzleIsActive && selector == "") {
-					sizzlerCountJQ.html("(0)");
+					document.getElementById(sizzlerCountId).innerHTML = "(0)";
 				}
 			}
 
