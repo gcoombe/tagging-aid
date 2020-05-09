@@ -256,8 +256,21 @@ function _pendotaInsertUI_() {
 
 			function updateOutline(e) {
 				// Controls highlight box
-				$(e).addClass("_pendota-outline_");
-				$("*").not(e).removeClass("_pendota-outline_");
+				$("._pendota-outline_").remove();
+				var styles = e.getBoundingClientRect();
+				let div = document.createElement("div");
+				div.className = "_pendota-outline_";
+				div.style.position = "fixed";
+				div.style.content = "";
+				div.style.height = `${styles.height + "px"}`;
+				div.style.width = `${styles.width + "px"}`;
+				div.style.top = `${styles.top + "px"}`;
+				div.style.right = `${styles.right + "px"}`;
+				div.style.bottom = `${styles.bottom + "px"}`;
+				div.style.left = `${styles.left + "px"}`;
+				div.style.zIndex = "9999998";
+				div.style.pointerEvents = "none";
+				document.body.appendChild(div);
 			}
 
 			// Apply the copy function to all copy icons
@@ -393,6 +406,7 @@ function _pendotaInsertUI_() {
 								div.style.background = "rgba(236,32,89,0.25)";
 								div.style.outline = "2px double #000";
 								div.style.zIndex = "9999998";
+								div.style.pointerEvents = "none";
 								document.body.appendChild(div);
 							}
 						}
