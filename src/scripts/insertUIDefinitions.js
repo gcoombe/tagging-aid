@@ -4,6 +4,55 @@ var _pendota_elem_array_ = [];
 // Global status variables
 var _pendota_isVisible_ = false;
 
+
+function lockedState(e) {
+    e.stopPropagation();
+    // Locks the scanner and UI
+    document.getElementById("_pendota_status_").textContent =
+        "Element Locked.  Click anywhere to reset.";
+    stopMouseover();
+    $("#_pendota-lock-icon_").html(
+        '<i class="_pendota-feather-locked_" data-feather="lock"></i>'
+    );
+    $("#_pendota-lock-icon_").addClass("_pendota-icon-locked_");
+    $("#_pendota-parent-up_").removeClass(
+        "_pendota-hide-arrow_"
+    );
+    $("#_pendota-parent-down_").removeClass(
+        "_pendota-hide-arrow_"
+    );
+    feather.replace();
+    $("#_pendota-feather-up-arrow_").attr(
+        "class",
+        "_pendota-parent-arrow_ _pendota-active-arrow_"
+    );
+    $("#_pendota-feather-down-arrow_").attr(
+        "class",
+        "_pendota-parent-arrow_ _pendota-disabled-arrow_"
+    );
+    _pendota_isLocked_ = true;
+
+}
+
+function unlockedState(e) {
+    e.stopPropagation();
+    // if already locked, unlocks instead
+    // Set the lock icon to starting "unlocked" state
+    $("#_pendota-lock-icon_").html(
+        '<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>'
+    );
+    $("#_pendota-lock-icon_").removeClass("_pendota-icon-locked_");
+    $("#_pendota-parent-up_").addClass("_pendota-hide-arrow_");
+    $("#_pendota-parent-down_").addClass("_pendota-hide-arrow_");
+    feather.replace();
+
+    // Set a status text letting the user the targeting is ready
+    document.getElementById("_pendota_status_").innerHTML =
+    "Click anywhere to Inspect. (Alt + Shift + L)";
+    startMouseover();
+    _pendota_isLocked_ = false;
+}
+
 // Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
 function updatePendotaContents(e) {
     // Get the target element's Id and Classes
@@ -163,7 +212,7 @@ function _pendotaInsertUI_() {
 			$("#" + sizzlerBtnId).on("click", _pendotaToggleHighlight);
 
 			// set the scanner in motion the first time the UI is displayed
-			startMouseover(); 
+			unlockedState(e);
 
 			// Apply the copy function to all copy icons
 			applyCopyFunction();
