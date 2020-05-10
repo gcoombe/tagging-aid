@@ -51,8 +51,20 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     });
 
                     // insert pendoTA definitions
+                    chrome.tabs.insertCSS({
+                        file: "./src/css/pendota_base.css",
+                    });
+
+                    chrome.tabs.insertCSS({
+                        file: "./src/css/pendota_ui.css",
+                    });
+
                     chrome.tabs.executeScript({
-                        file: "./src/scripts/insertDefinitions.js",
+                        file: "./src/scripts/insertBaseDefinitions.js",
+                    });
+
+                    chrome.tabs.executeScript({
+                        file: "./src/scripts/insertUIDefinitions.js",
                     });
 
 					var btnTA = document.createElement("button");

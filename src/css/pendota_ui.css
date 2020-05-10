@@ -1,13 +1,3 @@
-
-._pendota-outline_,
-._pendota-outline_:hover,
-._pendota-outline_:visited,
-._pendota-outline_:active,
-._pendota-outline_::before,
-._pendota-outline_::after {
-    outline: 2px dashed #028cc2;
-}
-
 /* Reset css for all pendota elements */
 #_pendota-wrapper_,
 #_pendota-wrapper_ *,
