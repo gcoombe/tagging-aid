@@ -36,7 +36,25 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						document
 							.getElementById(pendotaPopupId)
 							.appendChild(btnDes);
-					}
+                    }
+                    // load dependency libraries
+                    chrome.tabs.executeScript({
+                        file: "./src/scripts/jquery.min.js",
+                    });
+
+                    chrome.tabs.executeScript({
+                        file: "./src/scripts/interact.min.js",
+                    });
+
+                    chrome.tabs.executeScript({
+                        file: "./src/scripts/feather.min.js",
+                    });
+
+                    // insert pendoTA definitions
+                    chrome.tabs.executeScript({
+                        file: "./src/scripts/insertDefinitions.js",
+                    });
+
 					var btnTA = document.createElement("button");
 					btnTA.id = btnTAId;
 					btnTA.classList.add("popup-button");
@@ -50,7 +68,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		// Triggers script that sends message about whether designer is open
 		chrome.tabs.executeScript({
 			file: "./src/scripts/preloadCheck.js",
-		});
+        });
 
 		function launchDesigner() {
 			// launch the Pendo designer
@@ -63,20 +81,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		}
 
 		function launchPendota() {
-			// load dependency libraries
-
-			chrome.tabs.executeScript({
-				file: "./src/scripts/jquery.min.js",
-			});
-
-			chrome.tabs.executeScript({
-				file: "./src/scripts/interact.min.js",
-			});
-
-			chrome.tabs.executeScript({
-				file: "./src/scripts/feather.min.js",
-			});
-
 			// toggle on/off the pendota UI
 			chrome.tabs.executeScript({
 				file: "./src/scripts/toggleUI.js",
