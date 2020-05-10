@@ -1,5 +1,3 @@
-
-
 // Global listener functions so they can be removed easily
 var lockListener, keyLockListener, mouseoverListener, blockerFunction;
 function blockerFunction(e) {
@@ -43,22 +41,14 @@ function mouseoverListener(e) {
 };
 
 // Define the basic mouseover functionality
-function startMouseover() {
-    // Set the lock icon to starting "unlocked" state
-    $("#_pendota-lock-icon_").html(
-        '<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>'
-    );
-    $("#_pendota-lock-icon_").removeClass("_pendota-icon-locked_");
-    $("#_pendota-parent-up_").addClass("_pendota-hide-arrow_");
-    $("#_pendota-parent-down_").addClass("_pendota-hide-arrow_");
-    feather.replace();
-
-    // Set a status text letting the user the targeting is ready
-    document.getElementById("_pendota_status_").innerHTML =
-        "Click anywhere to Inspect. (Alt + Shift + L)";
-    
+function startMouseover() {    
     window.removeEventListener("mouseover", blockerFunction, true);
-    window.addEventListener('mouseover', mouseoverListener, true);
+    window.addEventListener("mouseover", mouseoverListener, true);
+}
+
+function stopMouseover() {
+    window.addEventListener("mouseover", blockerFunction, true);
+    window.removeEventListener('mouseover', mouseoverListener, true);
 }
 
 // A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
@@ -84,49 +74,23 @@ function keyLockListener(e) {
     }
 };
 
-function lockSwitch(e) {
+function lockSwitch(e, optional ) {
     // locks or unlocks the pendota element scanner
     e.preventDefault();
     var el = e.target;
 
     if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
-        e.stopPropagation();
         // if not on pendota interface, locks the scanner
-        document.getElementById("_pendota_status_").textContent =
-            "Element Locked.  Click anywhere to reset.";
-        window.removeEventListener('mouseover', mouseoverListener, true);
-        window.addEventListener('mouseover', blockerFunction, true);
-        $("#_pendota-lock-icon_").html(
-            '<i class="_pendota-feather-locked_" data-feather="lock"></i>'
-        );
-        $("#_pendota-lock-icon_").addClass("_pendota-icon-locked_");
-        $("#_pendota-parent-up_").removeClass(
-            "_pendota-hide-arrow_"
-        );
-        $("#_pendota-parent-down_").removeClass(
-            "_pendota-hide-arrow_"
-        );
-        feather.replace();
-        $("#_pendota-feather-up-arrow_").attr(
-            "class",
-            "_pendota-parent-arrow_ _pendota-active-arrow_"
-        );
-        $("#_pendota-feather-down-arrow_").attr(
-            "class",
-            "_pendota-parent-arrow_ _pendota-disabled-arrow_"
-        );
-        _pendota_isLocked_ = true;
+        lockedState(e);
     } else if (
         _pendota_isLocked_ &&
         (!someParentHasID(el, taggingAidId) ||
             someParentHasID(el, "_pendota-lock-icon_"))
     ) {
-        e.stopPropagation();
-        // if already locked, unlocks instead
-        startMouseover();
-        _pendota_isLocked_ = false;
+        unlockedState(e);
     }
 }
+
 
 // Define the copy function
 function copyToClipboard(inputId) {
