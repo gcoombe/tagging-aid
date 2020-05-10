@@ -221,7 +221,7 @@
 }
 
 #_pendota-wrapper_ #_pendota_target-img_ {
-    width: 40px;
+    width: 30px;
     margin: 0 auto;
 }
 
@@ -250,6 +250,7 @@
 
 #_pendota-wrapper_ ._pendota-copy-icon_ {
     cursor: pointer;
+    width: 20px;
 }
 
 #_pendota-wrapper_ #_pendota-button-fix_ {

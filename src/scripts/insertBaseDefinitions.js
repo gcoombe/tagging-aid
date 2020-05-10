@@ -1,7 +1,7 @@
 
 
 // Global listener functions so they can be removed easily
-var lockListener, keyLockListener, mouseoverListener, blockerFunction;
+var lockListener, keyLockListener, mouseoverListener;
 function blockerFunction(e) {
     e.preventDefault();
     e.stopPropagation();

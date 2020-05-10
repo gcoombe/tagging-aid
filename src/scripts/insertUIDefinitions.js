@@ -50,7 +50,7 @@ function updatePendotaContents(e) {
             '_" class="_pendota-copy-link_");\'>' +
             '<a href="#"><img class=_pendota-copy-icon_ src=' +
             copy_icon_url +
-            ' width="20"></a>' +
+            ' style="width:20px;"></a>' +
             "</div>" +
             "</td>" +
             "</tr>";
