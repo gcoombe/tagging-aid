@@ -5,8 +5,7 @@ var _pendota_elem_array_ = [];
 var _pendota_isVisible_ = false;
 
 
-function lockedState(e) {
-    e.stopPropagation();
+function lockedState() {
     // Locks the scanner and UI
     document.getElementById("_pendota_status_").textContent =
         "Element Locked.  Click anywhere to reset.";
@@ -35,7 +34,6 @@ function lockedState(e) {
 }
 
 function unlockedState(e) {
-    e.stopPropagation();
     // if already locked, unlocks instead
     // Set the lock icon to starting "unlocked" state
     $("#_pendota-lock-icon_").html(
@@ -87,7 +85,7 @@ function updatePendotaContents(e) {
         appendedHTML =
             appendedHTML +
             "<tr>" +
-            '<td width="90%" class="_pendota_input-row_"><input class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
+            '<td width="90%" class="_pendota_input-row_"><input no-drag class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
             i +
             '_" value=".' +
             _classNames_[i] +
@@ -133,6 +131,7 @@ function _pendotaInsertUI_() {
             var position = { x: 0, y: 0 };
 			// Implements the interact.js library to make the assistant draggable
 			interact("._pendota-draggable_").draggable({
+				ignoreFrom: '[no-drag]',
 				listeners: {
 					move(event) {
 						position.x += event.dx;
@@ -212,7 +211,7 @@ function _pendotaInsertUI_() {
 			$("#" + sizzlerBtnId).on("click", _pendotaToggleHighlight);
 
 			// set the scanner in motion the first time the UI is displayed
-			unlockedState(e);
+			unlockedState();
 
 			// Apply the copy function to all copy icons
 			applyCopyFunction();

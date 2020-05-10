@@ -41,7 +41,7 @@ function mouseoverListener(e) {
 };
 
 // Define the basic mouseover functionality
-function startMouseover() {    
+function startMouseover() {
     window.removeEventListener("mouseover", blockerFunction, true);
     window.addEventListener("mouseover", mouseoverListener, true);
 }
@@ -81,12 +81,14 @@ function lockSwitch(e, optional ) {
 
     if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
         // if not on pendota interface, locks the scanner
+        e.stopPropagation();
         lockedState(e);
     } else if (
         _pendota_isLocked_ &&
         (!someParentHasID(el, taggingAidId) ||
             someParentHasID(el, "_pendota-lock-icon_"))
     ) {
+        e.stopPropagation();
         unlockedState(e);
     }
 }

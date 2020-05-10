@@ -50,8 +50,8 @@
     max-height: 600px;
     overflow-y: auto;
     min-height: 450px;
-    max-width: 380px;
-    width: 380px;
+    max-width: 350px;
+    width: 350px;
     border: 2px solid rgba(0,0,0,0.3);
     border-radius: 7px;
     background: white;
@@ -231,7 +231,11 @@
 
 #_pendota-wrapper_ #_pendota_exit_img_container_ {
     width: 24px;
-    margin: 0 auto;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: unset;
+    left: unset;
 }
 
 #_pendota-wrapper_ #_pendota_exit_img_,
