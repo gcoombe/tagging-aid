@@ -82,14 +82,14 @@ function lockSwitch(e, optional ) {
     if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
         // if not on pendota interface, locks the scanner
         e.stopPropagation();
-        lockedState(e);
+        !!lockedState && lockedState(e);
     } else if (
         _pendota_isLocked_ &&
         (!someParentHasID(el, taggingAidId) ||
             someParentHasID(el, "_pendota-lock-icon_"))
     ) {
         e.stopPropagation();
-        unlockedState(e);
+        !!unlockedState && unlockedState(e);
     }
 }
 
