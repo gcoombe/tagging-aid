@@ -5,6 +5,9 @@ function blockerFunction(e) {
     e.stopPropagation();
 }
 
+console.log('window: ', window);
+console.log('window.parent: ', window.parent);
+
 // Global status variables
 var _pendota_isLocked_ = false;
 var sizzleIsActive = false;
@@ -74,39 +77,6 @@ function keyLockListener(e) {
     }
 };
 
-function lockSwitch(e, optional ) {
-    // locks or unlocks the pendota element scanner
-    e.preventDefault();
-    var el = e.target;
-
-    if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
-        // if not on pendota interface, locks the scanner
-        e.stopPropagation();
-        !!lockedState && lockedState(e);
-    } else if (
-        _pendota_isLocked_ &&
-        (!someParentHasID(el, taggingAidId) ||
-            someParentHasID(el, "_pendota-lock-icon_"))
-    ) {
-        e.stopPropagation();
-        !!unlockedState && unlockedState(e);
-    }
-}
-
-
-// Define the copy function
-function copyToClipboard(inputId) {
-    // Get the text field
-    var copyText = document.getElementById(inputId);
-
-    // Select the text field
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); // For mobile devices
-
-    // Copy the text field
-    document.execCommand("copy");
-}
-
 function updateOutline(e) {
     // Controls highlight box
     $("._pendota-outline_").remove();
@@ -125,17 +95,6 @@ function updateOutline(e) {
     div.style.pointerEvents = "none";
     document.body.appendChild(div);
 }
-
-// Apply the copy function to all copy icons
-function applyCopyFunction() {
-    $("._pendota-copy-link_").on("click", function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        copyToClipboard(e.currentTarget.id);
-    });
-}
-
-
 
 // Turns on sizzle highlighting function and adjusts visuals to match
 function _pendotaActivateHighlight() {

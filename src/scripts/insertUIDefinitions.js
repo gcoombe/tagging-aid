@@ -4,6 +4,24 @@ var _pendota_elem_array_ = [];
 // Global status variables
 var _pendota_isVisible_ = false;
 
+function lockSwitch(e, optional ) {
+    // locks or unlocks the pendota element scanner
+    e.preventDefault();
+    var el = e.target;
+
+    if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
+        // if not on pendota interface, locks the scanner
+        e.stopPropagation();
+        lockedState(e);
+    } else if (
+        _pendota_isLocked_ &&
+        (!someParentHasID(el, taggingAidId) ||
+            someParentHasID(el, "_pendota-lock-icon_"))
+    ) {
+        e.stopPropagation();
+        unlockedState(e);
+    }
+}
 
 function lockedState() {
     // Locks the scanner and UI
@@ -49,6 +67,28 @@ function unlockedState(e) {
     "Click anywhere to Inspect. (Alt + Shift + L)";
     startMouseover();
     _pendota_isLocked_ = false;
+}
+
+// Define the copy function
+function copyToClipboard(inputId) {
+    // Get the text field
+    var copyText = document.getElementById(inputId);
+
+    // Select the text field
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+
+    // Copy the text field
+    document.execCommand("copy");
+}
+
+// Apply the copy function to all copy icons
+function applyCopyFunction() {
+    $("._pendota-copy-link_").on("click", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        copyToClipboard(e.currentTarget.id);
+    });
 }
 
 // Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
