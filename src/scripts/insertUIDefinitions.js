@@ -1,25 +1,28 @@
 // Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
 var _pendota_elem_array_ = [];
 
+// listen for lock signal
+function lockSignalListener(e) {
+    if (event.source != window)
+          return;
+      
+    if (event.data.type && (event.data.type == "LOCK_SWITCH")) {
+        lockSwitch();
+    }
+}
+
 // Global status variables
 var _pendota_isVisible_ = false;
 
-function lockSwitch(e, optional ) {
+function lockSwitch() {
     // locks or unlocks the pendota element scanner
-    e.preventDefault();
-    var el = e.target;
+    // var el = e.target;
 
-    if (!_pendota_isLocked_ && !someParentHasID(el, taggingAidId)) {
+    if (!_pendota_isLocked_) {
         // if not on pendota interface, locks the scanner
-        e.stopPropagation();
-        lockedState(e);
-    } else if (
-        _pendota_isLocked_ &&
-        (!someParentHasID(el, taggingAidId) ||
-            someParentHasID(el, "_pendota-lock-icon_"))
-    ) {
-        e.stopPropagation();
-        unlockedState(e);
+        lockedState();
+    } else {
+        unlockedState();
     }
 }
 
@@ -51,7 +54,7 @@ function lockedState() {
 
 }
 
-function unlockedState(e) {
+function unlockedState() {
     // if already locked, unlocks instead
     // Set the lock icon to starting "unlocked" state
     $("#_pendota-lock-icon_").html(
@@ -185,6 +188,9 @@ function _pendotaInsertUI_() {
 			// Points the image source for static images stored with extension
 			$("._pendota-copy-icon_").attr("src", copy_icon_url);
 			$("#_pendota-target-img_").attr("src", pendo_target_url);
+
+            // add listener for lock signal
+            window.addEventListener("message", lockSignalListener, true);
 
 			// add listener for click to lock events
 			window.addEventListener("click", lockListener, true);

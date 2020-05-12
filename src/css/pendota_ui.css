@@ -68,11 +68,6 @@
     user-select: none;
 }
 
-#_pendota-wrapper_ #_pendota_header_div_ {
-    padding-top: 0px;
-    margin: 0 auto;
-}
-
 #_pendota-wrapper_ #_pendota-lock-icon_ {
     vertical-align: middle;
 }
@@ -249,7 +244,11 @@
 }
 
 #_pendota-wrapper_ #_pendota_header-div_ {
-    margin: 10px 0 5px;
+    margin: 10px 15px 5px 0;
+}
+
+#_pendota-wrapper_ #_pendota_header-div_ table:nth-of-type(1) * {
+    cursor: move;
 }
 
 #_pendota-wrapper_ ._pendota-copy-icon_ {
