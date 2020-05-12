@@ -6,7 +6,7 @@ var _pendota_elem_array_ = [];
 // listen for lock signal
 function lockSignalListener(e) {
     if (e.data.type && (e.data.type == "LOCK_SWITCH")) {
-        lockSwitch();
+        lockSwitch(e.data.isLocked);
     }
 }
 
@@ -25,15 +25,19 @@ function updateSignalListener(e) {
 var _pendota_isVisible_ = false;
 var _pendota_isLocked_ = false;
 
-function lockSwitch() {
+function lockSwitch(isLocked) {
     // locks or unlocks the pendota element scanner
     // var el = e.target;
-
-    if (!_pendota_isLocked_) {
-        // if not on pendota interface, locks the scanner
-        lockedState();
+    if (typeof(isLocked) !== "undefined") {
+        if (isLocked) lockedState();
+        else unlockedState()
     } else {
-        unlockedState();
+        if (!_pendota_isLocked_) {
+            // if not on pendota interface, locks the scanner
+            lockedState();
+        } else {
+            unlockedState();
+        }
     }
 }
 
@@ -153,6 +157,29 @@ function updatePendotaContents(e) {
     applyCopyFunction();
 }
 
+// Turns on sizzle highlighting function and adjusts visuals to match
+function _pendotaActivateHighlight() {
+    window.postMessage({type:"SIZZLE_SWITCH", isActive: true});
+    sizzleIsActive = true;
+    $("#" + sizzlerBtnId).addClass("_pendota-clicked");
+    $("#" + sizzlerBtnId).html("Stop");
+    _pendota_highlight();
+    $(window).on("resize", _pendota_highlight);
+    $(window).on("scroll", _pendota_highlight);
+    $("#" + sizzlerInputId).on("input", _pendota_highlight);
+}
+
+// Turns off sizzle highlighting and adjusts visuals to match
+function _pendotaDeactivateHighlight() {
+    window.postMessage({type:"SIZZLE_SWITCH", isActive: true});
+    sizzleIsActive = false;
+    $("#" + sizzlerBtnId).removeClass("_pendota-clicked");
+    $("#" + sizzlerBtnId).html("Test");
+    $(window).off("resize", _pendota_highlight);
+    $(window).off("scroll", _pendota_highlight);
+    $("#" + sizzlerCountId).html("--");
+    _pendota_remove_highlight();
+}
 
 function _pendotaInsertUI_() {
     //Injects the tag assistant UI

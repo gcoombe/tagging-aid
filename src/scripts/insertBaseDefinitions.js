@@ -5,6 +5,12 @@ function blockerFunction(e) {
     e.stopPropagation();
 }
 
+function nonTABlockerFunction(e) {
+    if (!someParentHasID(e.target, taggingAidId)) {
+        blockerFunction(e);
+    }
+}
+
 // Global status variables
 var pendotaIsActive = false;
 var sizzleIsActive = false;
@@ -21,12 +27,33 @@ const taggingAidId = "_pendota-tag-assistant_";
 const sizzlerCountId = "_pendota-sizzler-count_";
 const lockedIconClass = "_pendota-icon-locked_";
 const outlineBoxClass = "_pendota-outline_";
+const exitImgContainerId = "_pendota_exit_img_container_";
 const copy_icon_url = chrome.extension.getURL(
     "/src/ui/images/copy_icon.ico"
 );
 const pendo_target_url = chrome.extension.getURL(
     "/src/ui/images/pendo_target.png"
 );
+
+var listenersToBlock = [
+    "submit",
+    "change",
+    "input",
+    "focus",
+    "click"
+]
+
+function blockMajorListeners () {
+    listenersToBlock.forEach(function(ltype) {
+        window.addEventListener(ltype, nonTABlockerFunction, true);
+    })
+}
+
+function unblockMajorListeners () {
+    listenersToBlock.forEach(function(ltype) {
+        window.removeEventListener(ltype, nonTABlockerFunction, true);
+    })
+}
 
 function mouseoverListener(e) {
     // Defines the actual mouseover function
@@ -39,8 +66,8 @@ function mouseoverListener(e) {
         scannerElementArray[0] = e.target;
         updateOutline(e.target);
 
-        // Update the Tagging Aid contents
-        sentLastUpdate = true;
+        // Send a signal to other frames
+        sentLastUpdate = true; // protects the current from getting reset
         window.postMessage({type: "PENDOTA_UPDATE", element: passableObject(e.target)}, '*');
     }
 };
@@ -110,37 +137,43 @@ function passableObject(element) {
     return outElm;
 }
 
-function signalLockSwitch(e) {
+function signalLockSwitch(e, isLocked) {
     e.preventDefault();
     if (someParentHasClass(e.target, lockedIconClass) || !someParentHasID(e.target, taggingAidId))
     {
         e.stopPropagation();
-        window.postMessage({type:"LOCK_SWITCH"}, '*');
+        message = {type: "LOCK_SWITCH"};
+        if (typeof(isLocked) !== "undefined") message.isLocked = isLocked;
+        window.postMessage(message, '*');
     }
 }
 
 function scannerLockSignalListener() {
     if (event.data.type && (event.data.type == "LOCK_SWITCH")) {
-        scannerLockSwitch();
+        scannerLockSwitch(event.data.isLocked);
     }
 }
 
-function scannerLockSwitch() {
-    if (!scannerIsActive) {
-        startMouseover();
+function scannerLockSwitch(isLocked) {
+    if (typeof(isLocked !== "undefined")) {
+        if (isLocked) stopMouseover();
+        else startMouseover();
     } else {
-        stopMouseover();
-    }
+        if (!scannerIsActive) startMouseover();
+        else stopMouseover();
+    } 
 }
 
 // A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
 function lockListener(e) {
     e.preventDefault();
     el = e.target;
-    if (someParentHasID(el, "_pendota_exit_img_container_")) {
+    if (someParentHasID(el, exitImgContainerId)) {
         _pendotaDeactivate_();
-    } else {
-        signalLockSwitch(e);
+    } else if (someParentHasClass(el, lockedIconClass)) {
+        signalLockSwitch(e, false);
+    } else if (!someParentHasID(el, taggingAidId)) {
+        signalLockSwitch(e, scannerIsActive);
     }
 };
 
@@ -175,28 +208,6 @@ function updateOutline(e) {
     document.body.appendChild(div);
 }
 
-// Turns on sizzle highlighting function and adjusts visuals to match
-function _pendotaActivateHighlight() {
-    sizzleIsActive = true;
-    $("#" + sizzlerBtnId).addClass("_pendota-clicked");
-    $("#" + sizzlerBtnId).html("Stop");
-    _pendota_highlight();
-    $(window).on("resize", _pendota_highlight);
-    $(window).on("scroll", _pendota_highlight);
-    $("#" + sizzlerInputId).on("input", _pendota_highlight);
-}
-
-// Turns off sizzle highlighting and adjusts visuals to match
-function _pendotaDeactivateHighlight() {
-    sizzleIsActive = false;
-    $("#" + sizzlerBtnId).removeClass("_pendota-clicked");
-    $("#" + sizzlerBtnId).html("Test");
-    $(window).off("resize", _pendota_highlight);
-    $(window).off("scroll", _pendota_highlight);
-    $("#" + sizzlerCountId).html("--");
-    _pendota_remove_highlight();
-}
-
 // Swaps between activated and deactivated status for sizzle highlighting
 function _pendotaToggleHighlight() {
     if (sizzleIsActive) _pendotaDeactivateHighlight();
@@ -204,7 +215,7 @@ function _pendotaToggleHighlight() {
 }
 
 // Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
-function _pendota_highlight() {
+function _pendota_highlight(selector) {
     selector = document.getElementById(sizzlerInputId).value;
     _pendota_remove_highlight();
     if (sizzleIsActive && selector > "") {
@@ -280,6 +291,7 @@ function someParentHasClass(element, className) {
 
 function _pendotaActivate_() {
     pendotaIsActive = true;
+    startMouseover();
     !!_pendotaInsertUI_ && _pendotaInsertUI_();
 
     // add listener for signal update events
@@ -299,7 +311,9 @@ function _pendotaActivate_() {
 
     // add listener for keyboard lock events
     window.addEventListener('keydown', keyLockListener);
-    startMouseover();
+
+    blockMajorListeners();
+    
 }
 
 function _pendotaDeactivate_() {
@@ -320,4 +334,5 @@ function _pendotaDeactivate_() {
     window.removeEventListener("mouseover", mouseoverListener, true);
     window.removeEventListener("mouseover", blockerFunction, true);
     window.removeEventListener("keydown", keyLockListener);
+    unblockMajorListeners();
 }

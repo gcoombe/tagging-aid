@@ -41,6 +41,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						// load dependency libraries
 						chrome.tabs.executeScript({
 							file: "./src/scripts/jquery.min.js",
+							allFrames: true,
 						});
 
 						chrome.tabs.executeScript({
@@ -54,6 +55,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						// insert pendoTA definitions
 						chrome.tabs.insertCSS({
 							file: "./src/css/pendota_base.css",
+							allFrames: true,
 						});
 
 						chrome.tabs.insertCSS({
@@ -62,6 +64,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
 						chrome.tabs.executeScript({
 							file: "./src/scripts/insertBaseDefinitions.js",
+							allFrames: true,
 						});
 
 						chrome.tabs.executeScript({
@@ -102,7 +105,8 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		function launchPendota() {
 			// toggle pendota on/off
 			chrome.tabs.executeScript({
-				file: "./src/scripts/toggleScanner.js",
+				file: "./src/scripts/togglePendota.js",
+				allFrames: true,
 			});
 
 			// dismiss the extension popup
