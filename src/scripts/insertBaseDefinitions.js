@@ -17,14 +17,14 @@ var sizzleIsActive = false;
 var scannerIsActive = false;
 var sentLastUpdate = false;
 
-// Scanner element parent chain
+// Locked elements
 var scannerElementArray = [];
+var sizzleSelector = "";
+var lastSizzleId;
 
 // reused variables
-const sizzlerInputId = "_pendota-sizzler_";
-const sizzlerBtnId = "_pendota-sizzler-icon_";
+
 const taggingAidId = "_pendota-tag-assistant_";
-const sizzlerCountId = "_pendota-sizzler-count_";
 const lockedIconClass = "_pendota-icon-locked_";
 const outlineBoxClass = "_pendota-outline_";
 const exitImgContainerId = "_pendota_exit_img_container_";
@@ -48,17 +48,31 @@ function unblockMajorListeners() {
 }
 
 function sendMessageToAllFrames(tgt, msg) {
-    if (tgt.parent === tgt) {
-        sendMessageToChildFrames(tgt, msg);
-    } else {
-        sendMessageToAllFrames(tgt.parent, msg);
-    }
+	if (tgt.parent === tgt) {
+		sendMessageToChildFrames(tgt, msg);
+	} else {
+		sendMessageToAllFrames(tgt.parent, msg);
+	}
 }
 
 function sendMessageToChildFrames(tgt, msg) {
-    tgt.postMessage(msg, "*");
-    for (var i = 0; i < tgt.frames.length; i++) {
-        sendMessageToChildFrames(tgt.frames[i], msg);
+	if (typeof msg !== "string") msg = JSON.stringify(msg);
+	tgt.postMessage(msg, "*");
+	for (var i = 0; i < tgt.frames.length; i++) {
+		sendMessageToChildFrames(tgt.frames[i], msg);
+	}
+}
+
+function tryParseJSON(msg) {
+	if (typeof msg === "string") {
+		try {
+            msgJSON = JSON.parse(msg);
+		} catch(e) {
+			return msg;
+        }
+        return msgJSON;
+	} else {
+        return msg;
     }
 }
 
@@ -67,7 +81,11 @@ function mouseoverListener(e) {
 	blockerFunction(e);
 
 	// Don't process mouseover if over tagging aid
-	if (!someParentHasID(e.target, taggingAidId) && (!!e.target.nodeName && e.target.nodeName.toLowerCase() != "iframe")) {
+	if (
+		!someParentHasID(e.target, taggingAidId) &&
+		!!e.target.nodeName &&
+		e.target.nodeName.toLowerCase() != "iframe"
+	) {
 		// Move the outline to the current item
 		scannerElementArray = [];
 		scannerElementArray[0] = e.target;
@@ -75,47 +93,56 @@ function mouseoverListener(e) {
 
 		// Send a signal to other frames
 		sentLastUpdate = true; // protects the current from getting reset
-		sendMessageToAllFrames(window,
-			{ type: "PENDOTA_UPDATE", element: passableObject(e.target) }
-		);
+		sendMessageToAllFrames(window, {
+			type: "PENDOTA_UPDATE",
+			element: passableObject(e.target),
+		});
 	}
 }
 
 function scannerUpdateSignalListener(e) {
-	if (e.data && e.data.type && e.data.type == "PENDOTA_UPDATE") {
-        console.log("Update message received at: ", window.frameElement || document);
-        console.log("sent last update?: ", sentLastUpdate);
-		if (!sentLastUpdate) {
-			// wipe out scanner tree if this frame did not send the most recent update
-			$("._pendota-outline_").remove(); // Remove any active outline
-			scannerElementArray = [];
+	if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_UPDATE") {
+			if (!sentLastUpdate) {
+				// wipe out scanner tree if this frame did not send the most recent update
+				$("._pendota-outline_").remove(); // Remove any active outline
+				scannerElementArray = [];
+			}
+			sentLastUpdate = false; // set to false for all frames to wait for next signal
 		}
-		sentLastUpdate = false; // set to false for all frames to wait for next signal
 	}
 }
 
 function scannerTraverseUpSignalListener(e) {
 	var currentElem = {};
-	if (e.data && e.data.type && e.data.type == "PENDOTA_TRAVERSE_UP") {
-		if (scannerElementArray.length) {
-			currentElem["obj"] =
-				scannerElementArray[scannerElementArray.length - 1];
-			if (currentElem["obj"].nodeName.toLowerCase() != "html") {
-				parentElem = currentElem["obj"].parentNode;
-				scannerElementArray.push(parentElem);
-				updateOutline(parentElem);
+	if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_UP") {
+			if (scannerElementArray.length) {
+				currentElem["obj"] =
+					scannerElementArray[scannerElementArray.length - 1];
+				if (currentElem["obj"].nodeName.toLowerCase() != "html") {
+					parentElem = currentElem["obj"].parentNode;
+					scannerElementArray.push(parentElem);
+					updateOutline(parentElem);
+				}
 			}
 		}
 	}
 }
 
 function scannerTraverseDownSignalListener(e) {
-	if (e.data && e.data.type && e.data.type == "PENDOTA_TRAVERSE_DOWN") {
-		if (scannerElementArray.length) {
-			if (scannerElementArray.length > 1) {
-				scannerElementArray.pop();
-				childElem = scannerElementArray[scannerElementArray.length - 1];
-				updateOutline(childElem);
+	if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_DOWN") {
+			if (scannerElementArray.length) {
+				if (scannerElementArray.length > 1) {
+					scannerElementArray.pop();
+					childElem =
+						scannerElementArray[scannerElementArray.length - 1];
+					updateOutline(childElem);
+				}
 			}
 		}
 	}
@@ -160,8 +187,11 @@ function signalLockSwitch(e, isLocked) {
 }
 
 function scannerLockSignalListener(e) {
-	if (e.data && e.data.type && e.data.type == "LOCK_SWITCH") {
-		scannerLockSwitch(e.data.isLocked);
+	if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "LOCK_SWITCH") {
+			scannerLockSwitch(data.isLocked);
+		}
 	}
 }
 
@@ -222,7 +252,49 @@ function updateOutline(e) {
 var thUpdateOutline = _.throttle(updateOutline, 50);
 
 function resetOutline() {
-	if(scannerElementArray.length > 0) thUpdateOutline(scannerElementArray[scannerElementArray.length - 1]);
+	if (scannerElementArray.length > 0)
+		thUpdateOutline(scannerElementArray[scannerElementArray.length - 1]);
+}
+
+// Turns on sizzle highlighting function
+function _pendotaActivateHighlight(selector) {
+    sizzleIsActive = true;
+    sizzleSelector = selector;
+	_pendota_highlight();
+	$(window).on("resize", _pendota_highlight);
+	$(window).on("scroll", _pendota_highlight);
+}
+
+// Turns off sizzle highlighting
+function _pendotaDeactivateHighlight() {
+	sizzleIsActive = false;
+	$(window).off("resize", _pendota_highlight);
+	$(window).off("scroll", _pendota_highlight);
+	_pendota_remove_highlight();
+}
+
+function sizzleSwitchSignalListener(e) {
+    if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_SWITCH") {
+            if (!!data.isActive) {
+                _pendotaActivateHighlight(data.selector || "");
+            } else {
+                _pendotaDeactivateHighlight();
+            }
+        }
+    }
+}
+
+function sizzleUpdateSignalListener(e) {
+    if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_UPDATE") {
+            sizzleSelector = data.selector || "";
+            lastSizzleId = data.updateId;
+            _pendota_highlight();
+        }
+    }
 }
 
 // Swaps between activated and deactivated status for sizzle highlighting
@@ -232,8 +304,9 @@ function _pendotaToggleHighlight() {
 }
 
 // Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
-function _pendota_highlight(selector) {
-	selector = document.getElementById(sizzlerInputId).value;
+function _pendota_highlight() {
+    selector = sizzleSelector;
+    updateId = lastSizzleId;
 	_pendota_remove_highlight();
 	if (sizzleIsActive && selector > "") {
 		try {
@@ -265,10 +338,10 @@ function _pendota_highlight(selector) {
 			}
 		} catch (error) {
 			numMatch = 0;
-		}
-		$("#" + sizzlerCountId).html("(" + numMatch + ")");
-	} else if (sizzleIsActive && selector == "") {
-		$("#" + sizzlerCountId).html("(0)");
+        }
+        console.log("Sizzler count sent from: ", window.frameElement || document);
+        console.log("Sent: ", {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
+		sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
 	}
 }
 
@@ -309,86 +382,102 @@ function someParentHasClass(element, className) {
 }
 
 function signalDeactivate() {
-    console.log("Deactivate signal sent from: ",  window.frameElement || document);
-    sendMessageToAllFrames(window, {type: "PENDOTA_DEACTIVATE"});
+	sendMessageToAllFrames(window, { type: "PENDOTA_DEACTIVATE" });
 }
 
 function signalDeactivateListener(e) {
-    if (e.data && e.data.type && e.data.type === "PENDOTA_DEACTIVATE") {
-        console.log ("Deactivate signal received at: ",  window.frameElement || document)
-        _pendotaDeactivate_();
-    }
+	if (typeof(e.data) !== "undefined") {
+		var data = tryParseJSON(e.data);
+		if (typeof(data.type) !== "undefined" && data.type === "PENDOTA_DEACTIVATE") {
+			_pendotaDeactivate_();
+		}
+	}
 }
 
 function _pendotaActivate_() {
-    if(!pendotaIsActive) {
-        pendotaIsActive = true;
-        startMouseover();
-        if(typeof(_pendotaInsertUI_) !== "undefined") _pendotaInsertUI_();
+	if (!pendotaIsActive) {
+		pendotaIsActive = true;
+		startMouseover();
+		if (typeof _pendotaInsertUI_ !== "undefined") _pendotaInsertUI_();
 
-        // add listener for signal update events
-        window.addEventListener("message", scannerUpdateSignalListener, true);
+		// add listener for signal update events
+		window.addEventListener("message", scannerUpdateSignalListener, true);
 
-        // add listener for signal lock events
-        window.addEventListener("message", scannerLockSignalListener, true);
+		// add listener for signal lock events
+		window.addEventListener("message", scannerLockSignalListener, true);
 
-        // add listener for signal traverse up events
-        window.addEventListener("message", scannerTraverseUpSignalListener, true);
+		// add listener for signal traverse up events
+		window.addEventListener(
+			"message",
+			scannerTraverseUpSignalListener,
+			true
+		);
 
-        // add listener for signal traverse down events
-        window.addEventListener("message", scannerTraverseDownSignalListener, true);
+		// add listener for signal traverse down events
+		window.addEventListener(
+			"message",
+			scannerTraverseDownSignalListener,
+			true
+		);
 
-        // add listener for click to lock events
-        window.addEventListener("click", lockListener, true);
+		// add listener for click to lock events
+		window.addEventListener("click", lockListener, true);
 
-        // add listener for keyboard lock events
-        window.addEventListener("keydown", keyLockListener);
+		// add listener for keyboard lock events
+		window.addEventListener("keydown", keyLockListener);
 
-        // on scroll or resize, adjust the outline box
-        window.addEventListener("scroll", resetOutline);
+		// on scroll or resize, adjust the outline box
+		window.addEventListener("scroll", resetOutline);
         window.addEventListener("resize", resetOutline);
+        
+        // add listener for sizzler activation and updates
+        window.addEventListener("message", sizzleSwitchSignalListener, true);
+        window.addEventListener("message", sizzleUpdateSignalListener, true);
 
-        // deactivate on signal from another frame
-        window.addEventListener("message", signalDeactivateListener, false);
+		// deactivate on signal from another frame
+		window.addEventListener("message", signalDeactivateListener, false);
 
-        blockMajorListeners();
-
-        console.log('pendota active on: ', window.frameElement || document, 'parent: ', window.parent);
-    }
+		blockMajorListeners();
+	}
 }
 
 function _pendotaDeactivate_() {
-    if (pendotaIsActive) {
-        pendotaIsActive = false;
-        signalDeactivate();
-        stopMouseover();
-        $("." + outlineBoxClass).remove(); // Remove the outline
-        $("._pendota-highlight-selector_").remove(); // Remove selector highlighter
+	if (pendotaIsActive) {
+		pendotaIsActive = false;
+		signalDeactivate();
+		stopMouseover();
+		$("." + outlineBoxClass).remove(); // Remove the outline
+		$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
 
-        // Remove UI if present
-        if(typeof(_pendotaRemoveUI_) !== "undefined") _pendotaRemoveUI_();
+		// Remove UI if present
+		if (typeof _pendotaRemoveUI_ !== "undefined") _pendotaRemoveUI_();
 
-        // Remove all assigned listeners
-        window.removeEventListener("message", scannerUpdateSignalListener, true);
-        window.removeEventListener("message", scannerLockSignalListener, true);
-        window.removeEventListener(
-            "message",
-            scannerTraverseUpSignalListener,
-            true
-        );
-        window.removeEventListener(
-            "message",
-            scannerTraverseDownSignalListener,
-            true
-        );
-        window.removeEventListener("click", lockListener, true);
-        window.removeEventListener("mouseover", mouseoverListener, true);
-        window.removeEventListener("mouseover", blockerFunction, true);
-        window.removeEventListener("keydown", keyLockListener);
-        window.removeEventListener("scroll", resetOutline);
+		// Remove all assigned listeners
+		window.removeEventListener(
+			"message",
+			scannerUpdateSignalListener,
+			true
+		);
+		window.removeEventListener("message", scannerLockSignalListener, true);
+		window.removeEventListener(
+			"message",
+			scannerTraverseUpSignalListener,
+			true
+		);
+		window.removeEventListener(
+			"message",
+			scannerTraverseDownSignalListener,
+			true
+		);
+		window.removeEventListener("click", lockListener, true);
+		window.removeEventListener("mouseover", mouseoverListener, true);
+		window.removeEventListener("mouseover", blockerFunction, true);
+		window.removeEventListener("keydown", keyLockListener);
+		window.removeEventListener("scroll", resetOutline);
         window.removeEventListener("resize", resetOutline);
-        window.removeEventListener("message", signalDeactivateListener, false);
-        unblockMajorListeners();
-        console.log('pendota deactivated on: ', window.frameElement || document);
-    }
+        window.removeEventListener("message", sizzleSwitchSignalListener, true);
+        window.removeEventListener("message", sizzleUpdateSignalListener, true);
+		window.removeEventListener("message", signalDeactivateListener, false);
+		unblockMajorListeners();
+	}
 }
