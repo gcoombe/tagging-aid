@@ -1,13 +1,18 @@
+var _pendotaIsInjected = true;
 // Global listener functions so they can be removed easily
-var lockListener, keyLockListener, mouseoverListener;
 function blockerFunction(e) {
     e.preventDefault();
     e.stopPropagation();
 }
 
 // Global status variables
-var _pendota_isLocked_ = false;
+var pendotaIsActive = false;
 var sizzleIsActive = false;
+var scannerIsActive = false;
+var sentLastUpdate = false;
+
+// Scanner element parent chain
+var scannerElementArray = [];
 
 // reused variables
 const sizzlerInputId = "_pendota-sizzler_";
@@ -15,6 +20,7 @@ const sizzlerBtnId = "_pendota-sizzler-icon_";
 const taggingAidId = "_pendota-tag-assistant_";
 const sizzlerCountId = "_pendota-sizzler-count_";
 const lockedIconClass = "_pendota-icon-locked_";
+const outlineBoxClass = "_pendota-outline_";
 const copy_icon_url = chrome.extension.getURL(
     "/src/ui/images/copy_icon.ico"
 );
@@ -29,24 +35,65 @@ function mouseoverListener(e) {
     // Don't process mouseover if over tagging aid
     if (!someParentHasID(e.target, taggingAidId)) {
         // Move the outline to the current item
+        scannerElementArray = [];
+        scannerElementArray[0] = e.target;
         updateOutline(e.target);
 
-        // Set new child element in parent traversal tree
-        _pendota_elem_array_ = [];
-        _pendota_elem_array_[0] = { obj: e.target }; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
-
         // Update the Tagging Aid contents
-        updatePendotaContents(e.target);
+        sentLastUpdate = true;
+        window.postMessage({type: "PENDOTA_UPDATE", element: passableObject(e.target)}, '*');
     }
 };
 
+function scannerUpdateSignalListener(e) {
+    if (e.data.type && (e.data.type == "PENDOTA_UPDATE")) {
+        if (!sentLastUpdate) { // wipe out scanner tree if this frame did not send the most recent update
+            $("._pendota-outline_").remove(); // Remove any active outline
+            scannerElementArray = [];
+        }
+        sentLastUpdate = false; // set to false for all frames to wait for next signal
+    }
+}
+
+function scannerTraverseUpSignalListener(e) {
+    var currentElem = {};
+    if (e.data.type && e.data.type == "PENDOTA_TRAVERSE_UP") {
+        if (scannerElementArray.length) {
+            currentElem["obj"] =
+                scannerElementArray[scannerElementArray.length - 1];
+            if (currentElem["obj"].nodeName.toLowerCase() != "html") {
+                parentElem = currentElem["obj"].parentNode;
+                scannerElementArray.push(parentElem);
+                updateOutline(parentElem);
+            }
+        }
+    }
+}
+
+function scannerTraverseDownSignalListener(e) {
+    if (e.data.type && e.data.type == "PENDOTA_TRAVERSE_DOWN") {
+        if (scannerElementArray.length) {
+            if (scannerElementArray.length > 1) {
+                scannerElementArray.pop();
+                childElem =
+                    scannerElementArray[
+                        scannerElementArray.length - 1
+                    ];
+                updateOutline(childElem);
+            }
+        }
+    }
+}
+
 // Define the basic mouseover functionality
 function startMouseover() {
+    scannerIsActive = true;
     window.removeEventListener("mouseover", blockerFunction, true);
     window.addEventListener("mouseover", mouseoverListener, true);
 }
 
 function stopMouseover() {
+    scannerIsActive = false;
     window.addEventListener("mouseover", blockerFunction, true);
     window.removeEventListener('mouseover', mouseoverListener, true);
 }
@@ -55,6 +102,7 @@ function passableObject(element) {
     if (!element) return null;
     else {
         var outElm = {}
+        outElm.nodeName = element.nodeName;
         outElm.id = element.id;
         outElm.classes = jqClassToArr($(element).attr("class"));
         outElm.parentNode = passableObject(element.parentNode);
@@ -71,12 +119,26 @@ function signalLockSwitch(e) {
     }
 }
 
+function scannerLockSignalListener() {
+    if (event.data.type && (event.data.type == "LOCK_SWITCH")) {
+        scannerLockSwitch();
+    }
+}
+
+function scannerLockSwitch() {
+    if (!scannerIsActive) {
+        startMouseover();
+    } else {
+        stopMouseover();
+    }
+}
+
 // A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
 function lockListener(e) {
     e.preventDefault();
     el = e.target;
     if (someParentHasID(el, "_pendota_exit_img_container_")) {
-        _pendotaRemoveUI_();
+        _pendotaDeactivate_();
     } else {
         signalLockSwitch(e);
     }
@@ -90,7 +152,7 @@ function keyLockListener(e) {
 
     if (e.keyCode == 27) {
         // ESC to exit pendota UI
-        _pendotaRemoveUI_();
+        _pendotaDeactivate_();
     }
 };
 
@@ -152,7 +214,7 @@ function _pendota_highlight() {
             );
             var numMatch = 0;
             for (let elm of selectedElms) {
-                if (!someParentHasID(elm, taggingAidId)) {
+                if (!someParentHasID(elm, taggingAidId) && !someParentHasClass(elm, outlineBoxClass)) {
                     numMatch++;
                     var styles = elm.getBoundingClientRect();
                     let div = document.createElement("div");
@@ -187,13 +249,7 @@ function _pendota_remove_highlight() {
 
 function jqClassToArr(classes) {
     if (typeof classes != "undefined") {
-        classes = classes.split(/\s+/).filter((cls) => {
-            // should not split on just ' ' because classes can be separated by other forms of whitespace
-            return cls != "_pendota-outline_"; // block pendota outline results from output
-        });
-        if (classes.length == 0) {
-            classes = [""]; // if the only class was _pendota-outline_ the array would be empty, resulting in .undefined as a class
-        }
+        classes = classes.split(/\s+/); // should not split on just ' ' because classes can be separated by other forms of whitespace
     } else {
         classes = [""];
     }
@@ -202,19 +258,17 @@ function jqClassToArr(classes) {
 
 // Function to check if specified ID is anywhere in the parent tree
 function someParentHasID(element, idName) {
-	if (!element) return null;
-	else if (element.id != null && element.id == idName) return true;
-	else
-		return !element.parentNode
-			? false
-			: someParentHasID(element.parentNode, idName);
+    if (!element) return null;
+    else if (element.id != null && element.id == idName) return true;
+    else
+        return !element.parentNode
+            ? false
+            : someParentHasID(element.parentNode, idName);
 }
-
-console.log("Class test: ", someParentHasClass($("h1:contains('Joe Mohr')")[0],"jumbotron"));
 
 // Function to check if specified class is anywhere in the parent tree
 function someParentHasClass(element, className) {
-	if (!element) return null;
+    if (!element) return null;
     else {
         var classes = jqClassToArr($(element).attr("class"));
         if (!!classes && classes.includes(className)) return true;
@@ -222,4 +276,48 @@ function someParentHasClass(element, className) {
         ? false
         : someParentHasClass(element.parentNode, className);
     }
+}
+
+function _pendotaActivate_() {
+    pendotaIsActive = true;
+    !!_pendotaInsertUI_ && _pendotaInsertUI_();
+
+    // add listener for signal update events
+    window.addEventListener("message", scannerUpdateSignalListener, true);
+
+    // add listener for signal lock events
+    window.addEventListener("message", scannerLockSignalListener, true);
+
+    // add listener for signal traverse up events
+    window.addEventListener("message", scannerTraverseUpSignalListener, true);
+
+    // add listener for signal traverse down events
+    window.addEventListener("message", scannerTraverseDownSignalListener, true);
+
+    // add listener for click to lock events
+    window.addEventListener("click", lockListener, true);
+
+    // add listener for keyboard lock events
+    window.addEventListener('keydown', keyLockListener);
+    startMouseover();
+}
+
+function _pendotaDeactivate_() {
+    pendotaIsActive = false;
+    stopMouseover();
+    $("." + outlineBoxClass).remove(); // Remove the outline
+    $("._pendota-highlight-selector_").remove(); // Remove selector highlighter
+
+    // Remove UI if present
+    !!_pendotaRemoveUI_ && _pendotaRemoveUI_();
+
+    // Remove all assigned listeners
+    window.removeEventListener("message", scannerUpdateSignalListener, true);
+    window.removeEventListener("message", scannerLockSignalListener, true);
+    window.removeEventListener("message", scannerTraverseUpSignalListener, true);
+    window.removeEventListener("message", scannerTraverseDownSignalListener, true);
+    window.removeEventListener("click", lockListener, true);
+    window.removeEventListener("mouseover", mouseoverListener, true);
+    window.removeEventListener("mouseover", blockerFunction, true);
+    window.removeEventListener("keydown", keyLockListener);
 }

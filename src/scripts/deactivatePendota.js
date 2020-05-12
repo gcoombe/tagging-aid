@@ -1,0 +1,1 @@
+!!_pendotaDeactivate_ && _pendotaDeactivate_();

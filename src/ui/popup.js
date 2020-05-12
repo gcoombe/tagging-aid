@@ -85,6 +85,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         });
 
 		function launchDesigner() {
+			// Deactivate tagging aid if running
+			chrome.tabs.executeScript({
+				file: "./src/scripts/deactivatePendota.js",
+			});
+
 			// launch the Pendo designer
 			chrome.tabs.executeScript({
 				file: "./src/scripts/launchDesigner.js",
@@ -95,9 +100,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		}
 
 		function launchPendota() {
-			// toggle on/off the pendota UI
+			// toggle pendota on/off
 			chrome.tabs.executeScript({
-				file: "./src/scripts/toggleUI.js",
+				file: "./src/scripts/toggleScanner.js",
 			});
 
 			// dismiss the extension popup

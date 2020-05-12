@@ -1,18 +1,29 @@
+var _pendotaUIIsInjected = true;
+
 // Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
 var _pendota_elem_array_ = [];
 
 // listen for lock signal
 function lockSignalListener(e) {
-    if (event.source != window)
-          return;
-      
-    if (event.data.type && (event.data.type == "LOCK_SWITCH")) {
+    if (e.data.type && (e.data.type == "LOCK_SWITCH")) {
         lockSwitch();
+    }
+}
+
+// listen for update signal
+function updateSignalListener(e) {
+    if (e.data.type && (e.data.type == "PENDOTA_UPDATE")) {
+        updatePendotaContents(e.data.element);
+
+        // Reset parent traversal tree
+        _pendota_elem_array_ = [];
+        _pendota_elem_array_[0] = e.data.element;
     }
 }
 
 // Global status variables
 var _pendota_isVisible_ = false;
+var _pendota_isLocked_ = false;
 
 function lockSwitch() {
     // locks or unlocks the pendota element scanner
@@ -30,7 +41,7 @@ function lockedState() {
     // Locks the scanner and UI
     document.getElementById("_pendota_status_").textContent =
         "Element Locked.  Click anywhere to reset.";
-    stopMouseover();
+    //stopMouseover();
     $("#_pendota-lock-icon_").html(
         '<i class="_pendota-feather-locked_" data-feather="lock"></i>'
     );
@@ -68,7 +79,7 @@ function unlockedState() {
     // Set a status text letting the user the targeting is ready
     document.getElementById("_pendota_status_").innerHTML =
     "Click anywhere to Inspect. (Alt + Shift + L)";
-    startMouseover();
+    //startMouseover();
     _pendota_isLocked_ = false;
 }
 
@@ -98,20 +109,7 @@ function applyCopyFunction() {
 function updatePendotaContents(e) {
     // Get the target element's Id and Classes
     var _id_ = e.id;
-    var _classNames_ = [];
-    _classNames_ = $(e).attr("class"); // jQuery's class attribute is robust, handles svg's and other unique element types
-
-    if (typeof _classNames_ != "undefined") {
-        _classNames_ = _classNames_.split(/\s+/).filter((cls) => {
-            // should not split on just ' ' because classes can be separated by other forms of whitespace
-            return cls != "_pendota-outline_"; // block pendota outline results from output
-        });
-        if (_classNames_.length == 0) {
-            _classNames_ = [""]; // if the only class was _pendota-outline_ the array would be empty, resulting in .undefined as a class
-        }
-    } else {
-        _classNames_ = [""];
-    }
+    var _classNames_ = e.classes;
 
     var _elemType_ = e.nodeName.toLowerCase(); // stylistic choice
 
@@ -157,130 +155,125 @@ function updatePendotaContents(e) {
 
 
 function _pendotaInsertUI_() {
-	//Injects the tag assistant UI
-	_pendota_isVisible_ = true;
-	_pendota_isLocked_ = false;
+    //Injects the tag assistant UI
+    _pendota_isVisible_ = true;
+    _pendota_isLocked_ = false;
 
-	// Append popup div to the body
-	$.get(chrome.extension.getURL("src/ui/pendota.html"))
-		.then((data) => {
-			$("body").append(data);
-		})
-		.then(() => {
-			// Execute functions after appending UI
+    // add listener for lock signal
+    window.addEventListener("message", lockSignalListener, true);
 
-			feather.replace(); // sets feather icons (e.g. lock icon)
+    // add listener for update signal
+    window.addEventListener("message", updateSignalListener, true);
+
+    // Append popup div to the body
+    $.get(chrome.extension.getURL("src/ui/pendota.html"))
+        .then((data) => {
+            $("body").append(data);
+        })
+        .then(() => {
+            // Execute functions after appending UI
+
+            feather.replace(); // sets feather icons (e.g. lock icon)
 
             var position = { x: 0, y: 0 };
-			// Implements the interact.js library to make the assistant draggable
-			interact("._pendota-draggable_").draggable({
-				ignoreFrom: '[no-drag]',
-				listeners: {
-					move(event) {
-						position.x += event.dx;
-						position.y += event.dy;
+            // Implements the interact.js library to make the assistant draggable
+            interact("._pendota-draggable_").draggable({
+                ignoreFrom: '[no-drag]',
+                listeners: {
+                    move(event) {
+                        position.x += event.dx;
+                        position.y += event.dy;
 
-						event.target.style.transform = `translate(${position.x}px, ${position.y}px)`;
-					},
-				},
-			});
+                        event.target.style.transform = `translate(${position.x}px, ${position.y}px)`;
+                    },
+                },
+            });
 
-			// Points the image source for static images stored with extension
-			$("._pendota-copy-icon_").attr("src", copy_icon_url);
-			$("#_pendota-target-img_").attr("src", pendo_target_url);
+            // Points the image source for static images stored with extension
+            $("._pendota-copy-icon_").attr("src", copy_icon_url);
+            $("#_pendota-target-img_").attr("src", pendo_target_url);
 
-            // add listener for lock signal
-            window.addEventListener("message", lockSignalListener, true);
+            // Sets the onclick function for the parent tree traversal upwards
+            document
+                .getElementById("_pendota-parent-up_")
+                .addEventListener("click", function (ev) {
+                    window.postMessage({type:"PENDOTA_TRAVERSE_UP"});
+                    currentElem =
+                        _pendota_elem_array_[_pendota_elem_array_.length - 1];
+                    if (currentElem.nodeName.toLowerCase() != "html") {
+                        parentElem = {};
+                        parentElem = currentElem.parentNode; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
+                        _pendota_elem_array_.push(parentElem);
+                        updatePendotaContents(parentElem);
+                        //updateOutline(parentElem["obj"]);
+                        $("#_pendota-feather-down-arrow_").attr(
+                            "class",
+                            "_pendota-parent-arrow_ _pendota-active-arrow_"
+                        );
+                        if (
+                            parentElem.nodeName.toLowerCase() == "html"
+                        ) {
+                            $("#_pendota-feather-up-arrow_").attr(
+                                "class",
+                                "_pendota-parent-arrow_ _pendota-disabled-arrow_"
+                            );
+                        }
+                    }
+                });
 
-			// add listener for click to lock events
-			window.addEventListener("click", lockListener, true);
+            // Sets the onclick funtion for the parent tree traversal downwards
+            document
+                .getElementById("_pendota-parent-down_")
+                .addEventListener("click", function (ev) {
+                    window.postMessage({type:"PENDOTA_TRAVERSE_DOWN"});
+                    currentElem =
+                        _pendota_elem_array_[_pendota_elem_array_.length - 1];
+                    if (_pendota_elem_array_.length > 1) {
+                        _pendota_elem_array_.pop();
+                        childElem =
+                            _pendota_elem_array_[
+                                _pendota_elem_array_.length - 1
+                            ];
+                        updatePendotaContents(childElem);
+                        //updateOutline(childElem["obj"]);
+                        $("#_pendota-feather-up-arrow_").attr(
+                            "class",
+                            "_pendota-parent-arrow_ _pendota-active-arrow_"
+                        );
+                        if (_pendota_elem_array_.length == 1) {
+                            $("#_pendota-feather-down-arrow_").attr(
+                                "class",
+                                "_pendota-parent-arrow_ _pendota-disabled-arrow_"
+                            );
+                        }
+                    }
+                });
 
-			// add listener for keyboard lock events
-            window.addEventListener('keydown', keyLockListener);
+            // prep the sizzler in an off state
+            var sizzleIsActive = false;
+            $("#" + sizzlerBtnId).on("click", _pendotaToggleHighlight);
 
-			// Sets the onclick function for the parent tree traversal upwards
-			document
-				.getElementById("_pendota-parent-up_")
-				.addEventListener("click", function (ev) {
-					currentElem =
-						_pendota_elem_array_[_pendota_elem_array_.length - 1];
-					if (currentElem["obj"].nodeName.toLowerCase() != "html") {
-						parentElem = {};
-						parentElem["obj"] = currentElem["obj"].parentNode; // html object elements act weird if passed directly to an array. Storing this way keeps them in object form
-						_pendota_elem_array_.push(parentElem);
-						updatePendotaContents(parentElem["obj"]);
-						updateOutline(parentElem["obj"]);
-						$("#_pendota-feather-down-arrow_").attr(
-							"class",
-							"_pendota-parent-arrow_ _pendota-active-arrow_"
-						);
-						if (
-							parentElem["obj"].nodeName.toLowerCase() == "html"
-						) {
-							$("#_pendota-feather-up-arrow_").attr(
-								"class",
-								"_pendota-parent-arrow_ _pendota-disabled-arrow_"
-							);
-						}
-					}
-				});
+            // set the scanner in motion the first time the UI is displayed
+            unlockedState();
 
-			// Sets the onclick funtion for the parent tree traversal downwards
-			document
-				.getElementById("_pendota-parent-down_")
-				.addEventListener("click", function (ev) {
-					currentElem =
-						_pendota_elem_array_[_pendota_elem_array_.length - 1];
-					if (_pendota_elem_array_.length > 1) {
-						_pendota_elem_array_.pop();
-						childElem =
-							_pendota_elem_array_[
-								_pendota_elem_array_.length - 1
-							];
-						updatePendotaContents(childElem["obj"]);
-						updateOutline(childElem["obj"]);
-						$("#_pendota-feather-up-arrow_").attr(
-							"class",
-							"_pendota-parent-arrow_ _pendota-active-arrow_"
-						);
-						if (_pendota_elem_array_.length == 1) {
-							$("#_pendota-feather-down-arrow_").attr(
-								"class",
-								"_pendota-parent-arrow_ _pendota-disabled-arrow_"
-							);
-						}
-					}
-				});
+            // Apply the copy function to all copy icons
+            applyCopyFunction();
 
-			// prep the sizzler in an off state
-			var sizzleIsActive = false;
-			$("#" + sizzlerBtnId).on("click", _pendotaToggleHighlight);
-
-			// set the scanner in motion the first time the UI is displayed
-			unlockedState();
-
-			// Apply the copy function to all copy icons
-			applyCopyFunction();
-
-			// Call highlight toggler when clicking enter
-			$("#_pendota-sizzler-form_").on("submit", function (e) {
-				e.preventDefault();
-				_pendotaToggleHighlight();
-			});
-		});
+            // Call highlight toggler when clicking enter
+            $("#_pendota-sizzler-form_").on("submit", function (e) {
+                e.preventDefault();
+                _pendotaToggleHighlight();
+            });
+        });
 }
 
 // Defines function to later remove the Pendo Tag Assistant UI
 function _pendotaRemoveUI_() {
-	_pendota_isVisible_ = false;
+    _pendota_isVisible_ = false;
 
-	$("#_pendota-wrapper_").remove(); // Remove all html
-	$("._pendota-outline_").remove(); // Remove the outline
-	$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
+    $("#_pendota-wrapper_").remove(); // Remove all html
 
-	// Remove all assigned functions
-	window.removeEventListener("click", lockListener, true);
-    window.removeEventListener("mouseover", mouseoverListener, true);
-    window.removeEventListener("mouseover", blockerFunction, true);
-	window.removeEventListener("keydown", keyLockListener);
+    // Remove listeners
+    window.removeEventListener("message", lockSignalListener, true);
+    window.removeEventListener("message", updateSignalListener, true);
 }
