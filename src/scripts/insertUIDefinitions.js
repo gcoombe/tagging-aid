@@ -5,14 +5,14 @@ var _pendota_elem_array_ = [];
 
 // listen for lock signal
 function lockSignalListener(e) {
-    if (e.data.type && (e.data.type == "LOCK_SWITCH")) {
+    if (e.data && e.data.type && (e.data.type == "LOCK_SWITCH")) {
         lockSwitch(e.data.isLocked);
     }
 }
 
 // listen for update signal
 function updateSignalListener(e) {
-    if (e.data.type && (e.data.type == "PENDOTA_UPDATE")) {
+    if (e.data && e.data.type && (e.data.type == "PENDOTA_UPDATE")) {
         updatePendotaContents(e.data.element);
 
         // Reset parent traversal tree
@@ -159,7 +159,7 @@ function updatePendotaContents(e) {
 
 // Turns on sizzle highlighting function and adjusts visuals to match
 function _pendotaActivateHighlight() {
-    window.postMessage({type:"SIZZLE_SWITCH", isActive: true});
+    sendMessageToAllFrames(window, {type:"SIZZLE_SWITCH", isActive: true});
     sizzleIsActive = true;
     $("#" + sizzlerBtnId).addClass("_pendota-clicked");
     $("#" + sizzlerBtnId).html("Stop");
@@ -171,7 +171,7 @@ function _pendotaActivateHighlight() {
 
 // Turns off sizzle highlighting and adjusts visuals to match
 function _pendotaDeactivateHighlight() {
-    window.postMessage({type:"SIZZLE_SWITCH", isActive: true});
+    sendMessageToAllFrames(window, {type:"SIZZLE_SWITCH", isActive: true});
     sizzleIsActive = false;
     $("#" + sizzlerBtnId).removeClass("_pendota-clicked");
     $("#" + sizzlerBtnId).html("Test");
@@ -224,7 +224,7 @@ function _pendotaInsertUI_() {
             document
                 .getElementById("_pendota-parent-up_")
                 .addEventListener("click", function (ev) {
-                    window.postMessage({type:"PENDOTA_TRAVERSE_UP"});
+                    sendMessageToAllFrames(window, {type:"PENDOTA_TRAVERSE_UP"});
                     currentElem =
                         _pendota_elem_array_[_pendota_elem_array_.length - 1];
                     if (currentElem.nodeName.toLowerCase() != "html") {
@@ -252,7 +252,7 @@ function _pendotaInsertUI_() {
             document
                 .getElementById("_pendota-parent-down_")
                 .addEventListener("click", function (ev) {
-                    window.postMessage({type:"PENDOTA_TRAVERSE_DOWN"});
+                    sendMessageToAllFrames(window, {type:"PENDOTA_TRAVERSE_DOWN"});
                     currentElem =
                         _pendota_elem_array_[_pendota_elem_array_.length - 1];
                     if (_pendota_elem_array_.length > 1) {
@@ -292,6 +292,9 @@ function _pendotaInsertUI_() {
                 _pendotaToggleHighlight();
             });
         });
+
+        console.log("Pendota UI active on: ", window.frameElement || document);
+        console.log("Frames identified: ", window.frames[0], window.frames[1]);
 }
 
 // Defines function to later remove the Pendo Tag Assistant UI

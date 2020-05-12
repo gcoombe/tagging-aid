@@ -45,6 +45,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						});
 
 						chrome.tabs.executeScript({
+							file: "./src/scripts/lodash.min.js",
+							allFrames: true,
+						});
+
+						chrome.tabs.executeScript({
 							file: "./src/scripts/interact.min.js",
 						});
 
