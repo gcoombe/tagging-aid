@@ -16,13 +16,9 @@
         "default_popup": "src/ui/popup.html"
     },
     "permissions": [
-        "activeTab",
-        "storage"
+        "activeTab"
     ],
     "web_accessible_resources": [
         "src/*"
-    ],
-    "background": {
-        "scripts": ["js/background.js"]
-    }
+    ]
 }
