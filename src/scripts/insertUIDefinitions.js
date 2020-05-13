@@ -166,7 +166,6 @@ function updatePendotaContents(e) {
 
 // Turns on sizzle UI
 function _pendotaActivateSizzler() {
-    console.log("Sizzler activation sent");
     sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: true});
     signalSizzlerUpdate();
 	$("#" + sizzlerBtnId).addClass("_pendota-clicked");
@@ -198,7 +197,7 @@ function signalSizzlerUpdate() {
 
 function addToSizzleCount(value) {
     sizzleCount += value;
-    document.getElementById(sizzlerCountId).innerText = "(" + sizzleCount + ")";
+    document.getElementById(sizzlerCountId).innerHTML = "(" + sizzleCount + ")";
 }
 
 function sizzlerCountSignalListener(e) {

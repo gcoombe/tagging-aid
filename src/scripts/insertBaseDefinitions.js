@@ -20,7 +20,7 @@ var sentLastUpdate = false;
 // Locked elements
 var scannerElementArray = [];
 var sizzleSelector = "";
-var lastSizzleId;
+var lastSizzleHighlighId;
 
 // reused variables
 
@@ -291,7 +291,7 @@ function sizzleUpdateSignalListener(e) {
 		var data = tryParseJSON(e.data);
 		if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_UPDATE") {
             sizzleSelector = data.selector || "";
-            lastSizzleId = data.updateId;
+            lastSizzleHighlightId = data.updateId;
             _pendota_highlight();
         }
     }
@@ -306,7 +306,7 @@ function _pendotaToggleHighlight() {
 // Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
 function _pendota_highlight() {
     selector = sizzleSelector;
-    updateId = lastSizzleId;
+    updateId = lastSizzleHighlightId;
 	_pendota_remove_highlight();
 	if (sizzleIsActive && selector > "") {
 		try {
@@ -338,10 +338,11 @@ function _pendota_highlight() {
 			}
 		} catch (error) {
 			numMatch = 0;
-        }
-        console.log("Sizzler count sent from: ", window.frameElement || document);
-        console.log("Sent: ", {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
-		sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
+		}
+		if (lastSizzleHighlightId > 0) {
+			sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
+			lastSizzleHighlightId = 0; // don't send duplicate counts on resize / scroll
+		}
 	}
 }
 
