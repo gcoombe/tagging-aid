@@ -1,0 +1,9 @@
+._pendota-outline_,
+._pendota-outline_:hover,
+._pendota-outline_:visited,
+._pendota-outline_:active,
+._pendota-outline_::before,
+._pendota-outline_::after {
+    box-shadow: inset 0 0 6px #028cc2;
+    outline: 2px dashed #028cc2;
+}

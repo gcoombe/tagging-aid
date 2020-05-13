@@ -21,28 +21,68 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						: "from the extension"
 				);
 				console.log("message: ", request);
-				if (!!request.designerEnabled) {
-					document.getElementById(
-						pendotaPopupId
-					).innerHTML = `Cannot activate tagging aid while the designer is open.`;
-				} else {
-					document.getElementById(pendotaPopupId).innerHTML = "";
-					if (!!request.pendoExists) {
-						var btnDes = document.createElement("button");
-						btnDes.id = btnDesId;
-						btnDes.classList.add("popup-button");
-						btnDes.innerText = "Launch Pendo Designer";
-						btnDes.addEventListener("click", launchDesigner);
-						document
-							.getElementById(pendotaPopupId)
-							.appendChild(btnDes);
+				if (request.hasOwnProperty("designerEnabled")) {
+					if (!!request.designerEnabled) {
+						document.getElementById(
+							pendotaPopupId
+						).innerHTML = `Cannot activate tagging aid while the designer is open.`;
+					} else {
+						document.getElementById(pendotaPopupId).innerHTML = "";
+						if (!!request.pendoExists) {
+							var btnDes = document.createElement("button");
+							btnDes.id = btnDesId;
+							btnDes.classList.add("popup-button");
+							btnDes.innerText = "Launch Pendo Designer";
+							btnDes.addEventListener("click", launchDesigner);
+							document
+								.getElementById(pendotaPopupId)
+								.appendChild(btnDes);
+						}
+						// load dependency libraries
+						chrome.tabs.executeScript({
+							file: "./src/scripts/jquery.min.js",
+							allFrames: true,
+						});
+
+						chrome.tabs.executeScript({
+							file: "./src/scripts/lodash.min.js",
+							allFrames: true,
+						});
+
+						chrome.tabs.executeScript({
+							file: "./src/scripts/interact.min.js",
+						});
+
+						chrome.tabs.executeScript({
+							file: "./src/scripts/feather.min.js",
+						});
+
+						// insert pendoTA definitions
+						chrome.tabs.insertCSS({
+							file: "./src/css/pendota_base.css",
+							allFrames: true,
+						});
+
+						chrome.tabs.insertCSS({
+							file: "./src/css/pendota_ui.css",
+						});
+
+						chrome.tabs.executeScript({
+							file: "./src/scripts/insertBaseDefinitions.js",
+							allFrames: true,
+						});
+
+						chrome.tabs.executeScript({
+							file: "./src/scripts/insertUIDefinitions.js",
+						});
+
+						var btnTA = document.createElement("button");
+						btnTA.id = btnTAId;
+						btnTA.classList.add("popup-button");
+						btnTA.innerText = "Toggle Tagging Aid";
+						btnTA.addEventListener("click", launchPendota);
+						document.getElementById(pendotaPopupId).appendChild(btnTA);
 					}
-					var btnTA = document.createElement("button");
-					btnTA.id = btnTAId;
-					btnTA.classList.add("popup-button");
-					btnTA.innerText = "Toggle Tagging Aid";
-					btnTA.addEventListener("click", launchPendota);
-					document.getElementById(pendotaPopupId).appendChild(btnTA);
 				}
 			}
 		);
@@ -50,9 +90,14 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		// Triggers script that sends message about whether designer is open
 		chrome.tabs.executeScript({
 			file: "./src/scripts/preloadCheck.js",
-		});
+        });
 
 		function launchDesigner() {
+			// Deactivate tagging aid if running
+			chrome.tabs.executeScript({
+				file: "./src/scripts/deactivatePendota.js",
+			});
+
 			// launch the Pendo designer
 			chrome.tabs.executeScript({
 				file: "./src/scripts/launchDesigner.js",
@@ -63,23 +108,10 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		}
 
 		function launchPendota() {
-			// load dependency libraries
-
+			// toggle pendota on/off
 			chrome.tabs.executeScript({
-				file: "./src/scripts/jquery.min.js",
-			});
-
-			chrome.tabs.executeScript({
-				file: "./src/scripts/interact.min.js",
-			});
-
-			chrome.tabs.executeScript({
-				file: "./src/scripts/feather.min.js",
-			});
-
-			// toggle on/off the pendota UI
-			chrome.tabs.executeScript({
-				file: "./src/scripts/toggleUI.js",
+				file: "./src/scripts/togglePendota.js",
+				allFrames: true,
 			});
 
 			// dismiss the extension popup
