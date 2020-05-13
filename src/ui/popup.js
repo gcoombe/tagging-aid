@@ -8,7 +8,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 	// the return variable should only have one entry
 	activeTab = tabs[0];
 	console.log("url: ", activeTab.url);
-	if (activeTab.url.startsWith("chrome://")) {
+	if (activeTab.url.startsWith("chrome://") || activeTab.url.startsWith("https://chrome.google.com/")) {
 		document.getElementById(pendotaPopupId).innerHTML =
 			"Cannot activate tagging aid on chrome pages.";
 	} else {
