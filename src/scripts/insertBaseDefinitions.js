@@ -20,7 +20,7 @@ var sentLastUpdate = false;
 // Locked elements
 var scannerElementArray = [];
 var sizzleSelector = "";
-var lastSizzleHighlighId;
+var lastSizzleHighlighId = "";
 
 // reused variables
 
@@ -310,9 +310,10 @@ function _pendota_highlight() {
 	_pendota_remove_highlight();
 	if (sizzleIsActive && selector > "") {
 		try {
-			const selectedElms = document.querySelectorAll(selector);
+			var selectedElms = $(selector);
 			var numMatch = 0;
-			for (let elm of selectedElms) {
+			for (var i = 0; i < selectedElms.length; i++) {
+				elm = selectedElms[i];;
 				if (
 					!someParentHasID(elm, taggingAidId) &&
 					!someParentHasClass(elm, outlineBoxClass)
