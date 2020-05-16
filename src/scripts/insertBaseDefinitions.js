@@ -443,7 +443,6 @@ if (!pendota._pendotaIsInjected) {
 	pendota._pendotaDeactivate_ = function() {
 		if (pendota.pendotaIsActive) {
 			pendota.pendotaIsActive = false;
-			//pendota.signalDeactivate();
 			pendota.stopMouseover();
 			$("." + pendota.outlineBoxClass).remove(); // Remove the outline
 			$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
