@@ -213,7 +213,7 @@ if (!pendota._pendotaIsInjected) {
 		e.preventDefault();
 		el = e.target;
 		if (pendota.someParentHasID(el, pendota.exitImgContainerId)) {
-			pendota._pendotaDeactivate_();
+			pendota.signalDeactivate();
 		} else if (pendota.someParentHasClass(el, pendota.lockedIconClass)) {
 			pendota.signalLockSwitch(e, false);
 		} else if (!pendota.someParentHasID(el, pendota.taggingAidId)) {
@@ -229,7 +229,7 @@ if (!pendota._pendotaIsInjected) {
 
 		if (e.keyCode == 27) {
 			// ESC to exit pendota UI
-			pendota._pendotaDeactivate_();
+			pendota.signalDeactivate();
 		}
 	}
 
@@ -443,7 +443,7 @@ if (!pendota._pendotaIsInjected) {
 	pendota._pendotaDeactivate_ = function() {
 		if (pendota.pendotaIsActive) {
 			pendota.pendotaIsActive = false;
-			pendota.signalDeactivate();
+			//pendota.signalDeactivate();
 			pendota.stopMouseover();
 			$("." + pendota.outlineBoxClass).remove(); // Remove the outline
 			$("._pendota-highlight-selector_").remove(); // Remove selector highlighter

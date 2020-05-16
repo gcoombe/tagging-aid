@@ -2,5 +2,5 @@
 if (typeof pendota.pendotaIsActive == "undefined" || !pendota.pendotaIsActive) {
 	pendota._pendotaActivate_();
 } else {
-	pendota._pendotaDeactivate_();
+	pendota.signalDeactivate();
 }
