@@ -1,485 +1,484 @@
-var _pendotaIsInjected = true;
-// Global listener functions so they can be removed easily
-function blockerFunction(e) {
-	e.preventDefault();
-	e.stopPropagation();
+if (typeof(window.pendota) === "undefined") {
+	window.pendota = {};
 }
 
-function nonTABlockerFunction(e) {
-	if (!someParentHasID(e.target, taggingAidId)) {
-		blockerFunction(e);
+var pendota = window.pendota;
+
+if (!pendota._pendotaIsInjected) {
+	pendota._pendotaIsInjected = true;
+	// Global listener functions so they can be removed easily
+	pendota.blockerFunction = function(e) {
+		e.preventDefault();
+		e.stopPropagation();
 	}
-}
 
-// Global status variables
-var pendotaIsActive = false;
-var sizzleIsActive = false;
-var scannerIsActive = false;
-var sentLastUpdate = false;
-
-// Locked elements
-var scannerElementArray = [];
-var sizzleSelector = "";
-var lastSizzleHighlighId = "";
-
-// reused variables
-
-const taggingAidId = "_pendota-tag-assistant_";
-const lockedIconClass = "_pendota-icon-locked_";
-const outlineBoxClass = "_pendota-outline_";
-const exitImgContainerId = "_pendota_exit_img_container_";
-const copy_icon_url = chrome.extension.getURL("/src/ui/images/copy_icon.ico");
-const pendo_target_url = chrome.extension.getURL(
-	"/src/ui/images/pendo_target.png"
-);
-
-var listenersToBlock = ["submit", "change", "input", "focus", "click"];
-
-function blockMajorListeners() {
-	listenersToBlock.forEach(function (ltype) {
-		window.addEventListener(ltype, nonTABlockerFunction, true);
-	});
-}
-
-function unblockMajorListeners() {
-	listenersToBlock.forEach(function (ltype) {
-		window.removeEventListener(ltype, nonTABlockerFunction, true);
-	});
-}
-
-function sendMessageToAllFrames(tgt, msg) {
-	if (tgt.parent === tgt) {
-		sendMessageToChildFrames(tgt, msg);
-	} else {
-		sendMessageToAllFrames(tgt.parent, msg);
+	pendota.nonTABlockerFunction = function(e) {
+		if (!pendota.someParentHasID(e.target, pendota.taggingAidId)) {
+			pendota.blockerFunction(e);
+		}
 	}
-}
 
-function sendMessageToChildFrames(tgt, msg) {
-	if (typeof msg !== "string") msg = JSON.stringify(msg);
-	tgt.postMessage(msg, "*");
-	for (var i = 0; i < tgt.frames.length; i++) {
-		sendMessageToChildFrames(tgt.frames[i], msg);
-	}
-}
+	// Global status variables
+	pendota.pendotaIsActive = false;
+	pendota.sizzleIsActive = false;
+	pendota.scannerIsActive = false;
+	pendota.sentLastUpdate = false;
 
-function tryParseJSON(msg) {
-	if (typeof msg === "string") {
-		try {
-            msgJSON = JSON.parse(msg);
-		} catch(e) {
-			return msg;
-        }
-        return msgJSON;
-	} else {
-        return msg;
-    }
-}
+	// Locked elements
+	pendota.scannerElementArray = [];
+	pendota.sizzleSelector = "";
+	pendota.lastSizzleHighlightId = 0; // ID used to connect match counts with the request triggered them
 
-function mouseoverListener(e) {
-	// Defines the actual mouseover function
-	blockerFunction(e);
+	// reused variables
 
-	// Don't process mouseover if over tagging aid
-	if (
-		!someParentHasID(e.target, taggingAidId) &&
-		!!e.target.nodeName &&
-		e.target.nodeName.toLowerCase() != "iframe"
-	) {
-		// Move the outline to the current item
-		scannerElementArray = [];
-		scannerElementArray[0] = e.target;
-		updateOutline(e.target);
+	pendota.taggingAidId = "_pendota-tag-assistant_";
+	pendota.lockedIconClass = "_pendota-icon-locked_";
+	pendota.outlineBoxClass = "_pendota-outline_";
+	pendota.exitImgContainerId = "_pendota_exit_img_container_";
 
-		// Send a signal to other frames
-		sentLastUpdate = true; // protects the current from getting reset
-		sendMessageToAllFrames(window, {
-			type: "PENDOTA_UPDATE",
-			element: passableObject(e.target),
+	pendota.listenersToBlock = ["submit", "change", "input", "focus", "click"];
+
+	pendota.blockMajorListeners = function() {
+		pendota.listenersToBlock.forEach(function (ltype) {
+			window.addEventListener(ltype, pendota.nonTABlockerFunction, true);
 		});
 	}
-}
 
-function scannerUpdateSignalListener(e) {
-	if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_UPDATE") {
-			if (!sentLastUpdate) {
-				// wipe out scanner tree if this frame did not send the most recent update
-				$("._pendota-outline_").remove(); // Remove any active outline
-				scannerElementArray = [];
-			}
-			sentLastUpdate = false; // set to false for all frames to wait for next signal
+	pendota.unblockMajorListeners = function() {
+		pendota.listenersToBlock.forEach(function (ltype) {
+			window.removeEventListener(ltype, pendota.nonTABlockerFunction, true);
+		});
+	}
+
+	pendota.sendMessageToAllFrames = function(tgt, msg) {
+		if (tgt.parent === tgt) {
+			pendota.sendMessageToChildFrames(tgt, msg);
+		} else {
+			pendota.sendMessageToAllFrames(tgt.parent, msg);
 		}
 	}
-}
 
-function scannerTraverseUpSignalListener(e) {
-	var currentElem = {};
-	if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_UP") {
-			if (scannerElementArray.length) {
-				currentElem["obj"] =
-					scannerElementArray[scannerElementArray.length - 1];
-				if (currentElem["obj"].nodeName.toLowerCase() != "html") {
-					parentElem = currentElem["obj"].parentNode;
-					scannerElementArray.push(parentElem);
-					updateOutline(parentElem);
+	pendota.sendMessageToChildFrames = function(tgt, msg) {
+		if (typeof msg !== "string") msg = JSON.stringify(msg);
+		tgt.postMessage(msg, "*");
+		for (var i = 0; i < tgt.frames.length; i++) {
+			pendota.sendMessageToChildFrames(tgt.frames[i], msg);
+		}
+	}
+
+	pendota.tryParseJSON = function(msg) {
+		if (typeof msg === "string") {
+			try {
+				msgJSON = JSON.parse(msg);
+			} catch(e) {
+				return msg;
+			}
+			return msgJSON;
+		} else {
+			return msg;
+		}
+	}
+
+	pendota.mouseoverListener = function(e) {
+		// Defines the actual mouseover function
+		pendota.blockerFunction(e);
+
+		// Don't process mouseover if over tagging aid
+		if (
+			!pendota.someParentHasID(e.target, pendota.taggingAidId) &&
+			!!e.target.nodeName &&
+			e.target.nodeName.toLowerCase() != "iframe"
+		) {
+			// Move the outline to the current item
+			pendota.scannerElementArray = [];
+			pendota.scannerElementArray[0] = e.target;
+			pendota.updateOutline(e.target);
+
+			// Send a signal to other frames
+			pendota.sentLastUpdate = true; // protects the current from getting reset
+			pendota.sendMessageToAllFrames(window, {
+				type: "PENDOTA_UPDATE",
+				element: pendota.passableObject(e.target),
+			});
+		}
+	}
+
+	pendota.scannerUpdateSignalListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_UPDATE") {
+				if (!pendota.sentLastUpdate) {
+					// wipe out scanner tree if this frame did not send the most recent update
+					$("._pendota-outline_").remove(); // Remove any active outline
+					pendota.scannerElementArray = [];
+				}
+				pendota.sentLastUpdate = false; // set to false for all frames to wait for next signal
+			}
+		}
+	}
+
+	pendota.scannerTraverseUpSignalListener = function(e) {
+		var currentElem = {};
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_UP") {
+				if (pendota.scannerElementArray.length) {
+					currentElem["obj"] =
+						pendota.scannerElementArray[pendota.scannerElementArray.length - 1];
+					if (currentElem["obj"].nodeName.toLowerCase() != "html") {
+						parentElem = currentElem["obj"].parentNode;
+						pendota.scannerElementArray.push(parentElem);
+						pendota.updateOutline(parentElem);
+					}
 				}
 			}
 		}
 	}
-}
 
-function scannerTraverseDownSignalListener(e) {
-	if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_DOWN") {
-			if (scannerElementArray.length) {
-				if (scannerElementArray.length > 1) {
-					scannerElementArray.pop();
-					childElem =
-						scannerElementArray[scannerElementArray.length - 1];
-					updateOutline(childElem);
+	pendota.scannerTraverseDownSignalListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_TRAVERSE_DOWN") {
+				if (pendota.scannerElementArray.length) {
+					if (pendota.scannerElementArray.length > 1) {
+						pendota.scannerElementArray.pop();
+						childElem =
+							pendota.scannerElementArray[pendota.scannerElementArray.length - 1];
+						pendota.updateOutline(childElem);
+					}
 				}
 			}
 		}
 	}
-}
 
-// Define the basic mouseover functionality
-function startMouseover() {
-	scannerIsActive = true;
-	window.removeEventListener("mouseover", blockerFunction, true);
-	window.addEventListener("mouseover", mouseoverListener, true);
-}
-
-function stopMouseover() {
-	scannerIsActive = false;
-	window.addEventListener("mouseover", blockerFunction, true);
-	window.removeEventListener("mouseover", mouseoverListener, true);
-}
-
-function passableObject(element) {
-	if (!element) return null;
-	else {
-		var outElm = {};
-		outElm.nodeName = element.nodeName;
-		outElm.id = element.id;
-		outElm.classes = jqClassToArr($(element).attr("class"));
-		outElm.parentNode = passableObject(element.parentNode);
+	// Define the basic mouseover functionality
+	pendota.startMouseover = function() {
+		pendota.scannerIsActive = true;
+		window.removeEventListener("mouseover", pendota.blockerFunction, true);
+		window.addEventListener("mouseover", pendota.mouseoverListener, true);
 	}
-	return outElm;
-}
 
-function signalLockSwitch(e, isLocked) {
-	e.preventDefault();
-	if (
-		someParentHasClass(e.target, lockedIconClass) ||
-		!someParentHasID(e.target, taggingAidId)
-	) {
-		e.stopPropagation();
-		message = { type: "LOCK_SWITCH" };
-		if (typeof isLocked !== "undefined") message.isLocked = isLocked;
-		sendMessageToAllFrames(window, message);
+	pendota.stopMouseover = function() {
+		pendota.scannerIsActive = false;
+		window.addEventListener("mouseover", pendota.blockerFunction, true);
+		window.removeEventListener("mouseover", pendota.mouseoverListener, true);
 	}
-}
 
-function scannerLockSignalListener(e) {
-	if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "LOCK_SWITCH") {
-			scannerLockSwitch(data.isLocked);
+	pendota.passableObject = function(element) {
+		if (!element) return null;
+		else {
+			var outElm = {};
+			outElm.nodeName = element.nodeName;
+			outElm.id = element.id;
+			outElm.classes = pendota.jqClassToArr($(element).attr("class"));
+			outElm.parentNode = pendota.passableObject(element.parentNode);
+		}
+		return outElm;
+	}
+
+	pendota.signalLockSwitch = function(e, isLocked) {
+		e.preventDefault();
+		if (
+			pendota.someParentHasClass(e.target, pendota.lockedIconClass) ||
+			!pendota.someParentHasID(e.target, pendota.taggingAidId)
+		) {
+			e.stopPropagation();
+			message = { type: "LOCK_SWITCH" };
+			if (typeof isLocked !== "undefined") message.isLocked = isLocked;
+			pendota.sendMessageToAllFrames(window, message);
 		}
 	}
-}
 
-function scannerLockSwitch(isLocked) {
-	if (typeof (isLocked !== "undefined")) {
-		if (isLocked) stopMouseover();
-		else startMouseover();
-	} else {
-		if (!scannerIsActive) startMouseover();
-		else stopMouseover();
-	}
-}
-
-// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
-function lockListener(e) {
-	e.preventDefault();
-	el = e.target;
-	if (someParentHasID(el, exitImgContainerId)) {
-		_pendotaDeactivate_();
-	} else if (someParentHasClass(el, lockedIconClass)) {
-		signalLockSwitch(e, false);
-	} else if (!someParentHasID(el, taggingAidId)) {
-		signalLockSwitch(e, scannerIsActive);
-	}
-}
-
-function keyLockListener(e) {
-	if (e.altKey && e.shiftKey && e.keyCode == 76) {
-		// alt + shift + L to lock/unlock
-		signalLockSwitch(e);
+	pendota.scannerLockSignalListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "LOCK_SWITCH") {
+				pendota.scannerLockSwitch(data.isLocked);
+			}
+		}
 	}
 
-	if (e.keyCode == 27) {
-		// ESC to exit pendota UI
-		_pendotaDeactivate_();
+	pendota.scannerLockSwitch = function(isLocked) {
+		if (typeof (isLocked !== "undefined")) {
+			if (isLocked) pendota.stopMouseover();
+			else pendota.startMouseover();
+		} else {
+			if (!pendota.scannerIsActive) pendota.startMouseover();
+			else pendota.stopMouseover();
+		}
 	}
-}
 
-function updateOutline(e) {
-	// Controls highlight box
-	$("._pendota-outline_").remove();
-	var styles = e.getBoundingClientRect();
-	let div = document.createElement("div");
-	div.className = "_pendota-outline_";
-	div.style.position = "fixed";
-	div.style.content = "";
-	div.style.height = `${styles.height + "px"}`;
-	div.style.width = `${styles.width + "px"}`;
-	div.style.top = `${styles.top + "px"}`;
-	div.style.right = `${styles.right + "px"}`;
-	div.style.bottom = `${styles.bottom + "px"}`;
-	div.style.left = `${styles.left + "px"}`;
-	div.style.zIndex = "9999998";
-	div.style.pointerEvents = "none";
-	document.body.appendChild(div);
-}
+	// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
+	pendota.lockListener = function(e) {
+		e.preventDefault();
+		el = e.target;
+		if (pendota.someParentHasID(el, pendota.exitImgContainerId)) {
+			pendota._pendotaDeactivate_();
+		} else if (pendota.someParentHasClass(el, pendota.lockedIconClass)) {
+			pendota.signalLockSwitch(e, false);
+		} else if (!pendota.someParentHasID(el, pendota.taggingAidId)) {
+			pendota.signalLockSwitch(e, pendota.scannerIsActive);
+		}
+	}
 
-var thUpdateOutline = _.throttle(updateOutline, 50);
+	pendota.keyLockListener = function(e) {
+		if (e.altKey && e.shiftKey && e.keyCode == 76) {
+			// alt + shift + L to lock/unlock
+			pendota.signalLockSwitch(e);
+		}
 
-function resetOutline() {
-	if (scannerElementArray.length > 0)
-		thUpdateOutline(scannerElementArray[scannerElementArray.length - 1]);
-}
+		if (e.keyCode == 27) {
+			// ESC to exit pendota UI
+			pendota._pendotaDeactivate_();
+		}
+	}
 
-// Turns on sizzle highlighting function
-function _pendotaActivateHighlight(selector) {
-    sizzleIsActive = true;
-    sizzleSelector = selector;
-	_pendota_highlight();
-	$(window).on("resize", _pendota_highlight);
-	$(window).on("scroll", _pendota_highlight);
-}
+	pendota.updateOutline = function(e) {
+		// Controls highlight box
+		$("._pendota-outline_").remove();
+		var styles = e.getBoundingClientRect();
+		let div = document.createElement("div");
+		div.className = "_pendota-outline_";
+		div.style.position = "fixed";
+		div.style.content = "";
+		div.style.height = `${styles.height + "px"}`;
+		div.style.width = `${styles.width + "px"}`;
+		div.style.top = `${styles.top + "px"}`;
+		div.style.right = `${styles.right + "px"}`;
+		div.style.bottom = `${styles.bottom + "px"}`;
+		div.style.left = `${styles.left + "px"}`;
+		div.style.zIndex = "9999998";
+		div.style.pointerEvents = "none";
+		document.body.appendChild(div);
+	}
 
-// Turns off sizzle highlighting
-function _pendotaDeactivateHighlight() {
-	sizzleIsActive = false;
-	$(window).off("resize", _pendota_highlight);
-	$(window).off("scroll", _pendota_highlight);
-	_pendota_remove_highlight();
-}
+	var thUpdateOutline = _.throttle(pendota.updateOutline, 50);
 
-function sizzleSwitchSignalListener(e) {
-    if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_SWITCH") {
-            if (!!data.isActive) {
-                _pendotaActivateHighlight(data.selector || "");
-            } else {
-                _pendotaDeactivateHighlight();
-            }
-        }
-    }
-}
+	pendota.resetOutline = function() {
+		if (pendota.scannerElementArray.length > 0)
+			thUpdateOutline(pendota.scannerElementArray[pendota.scannerElementArray.length - 1]);
+	}
 
-function sizzleUpdateSignalListener(e) {
-    if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_UPDATE") {
-            sizzleSelector = data.selector || "";
-            lastSizzleHighlightId = data.updateId;
-            _pendota_highlight();
-        }
-    }
-}
+	// Turns on sizzle highlighting function
+	pendota._pendotaActivateHighlight = function(selector) {
+		pendota.sizzleIsActive = true;
+		pendota.sizzleSelector = selector;
+		pendota._pendota_highlight();
+		$(window).on("resize", pendota._pendota_highlight);
+		$(window).on("scroll", pendota._pendota_highlight);
+	}
 
-// Swaps between activated and deactivated status for sizzle highlighting
-function _pendotaToggleHighlight() {
-	if (sizzleIsActive) _pendotaDeactivateHighlight();
-	else _pendotaActivateHighlight();
-}
+	// Turns off sizzle highlighting
+	pendota._pendotaDeactivateHighlight = function() {
+		pendota.sizzleIsActive = false;
+		$(window).off("resize", pendota._pendota_highlight);
+		$(window).off("scroll", pendota._pendota_highlight);
+		pendota._pendota_remove_highlight();
+	}
 
-// Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
-function _pendota_highlight() {
-    selector = sizzleSelector;
-    updateId = lastSizzleHighlightId;
-	_pendota_remove_highlight();
-	if (sizzleIsActive && selector > "") {
-		try {
-			var selectedElms = $(selector);
-			var numMatch = 0;
-			for (var i = 0; i < selectedElms.length; i++) {
-				elm = selectedElms[i];;
-				if (
-					!someParentHasID(elm, taggingAidId) &&
-					!someParentHasClass(elm, outlineBoxClass)
-				) {
-					numMatch++;
-					var styles = elm.getBoundingClientRect();
-					let div = document.createElement("div");
-					div.className = "_pendota-highlight-selector_";
-					div.style.position = "fixed";
-					div.style.content = "";
-					div.style.height = `${styles.height + "px"}`;
-					div.style.width = `${styles.width + "px"}`;
-					div.style.top = `${styles.top + "px"}`;
-					div.style.right = `${styles.right + "px"}`;
-					div.style.bottom = `${styles.bottom + "px"}`;
-					div.style.left = `${styles.left + "px"}`;
-					div.style.background = "rgba(236,32,89,0.25)";
-					div.style.outline = "2px double #000";
-					div.style.zIndex = "9999998";
-					div.style.pointerEvents = "none";
-					document.body.appendChild(div);
+	pendota.sizzleSwitchSignalListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_SWITCH") {
+				if (!!data.isActive) {
+					pendota._pendotaActivateHighlight(data.selector || "");
+				} else {
+					pendota._pendotaDeactivateHighlight();
 				}
 			}
-		} catch (error) {
-			numMatch = 0;
-		}
-		if (lastSizzleHighlightId > 0) {
-			sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
-			lastSizzleHighlightId = 0; // don't send duplicate counts on resize / scroll
 		}
 	}
-}
 
-function _pendota_remove_highlight() {
-	$("._pendota-highlight-selector_").remove();
-}
-
-function jqClassToArr(classes) {
-	if (typeof classes != "undefined") {
-		classes = classes.split(/\s+/); // should not split on just ' ' because classes can be separated by other forms of whitespace
-	} else {
-		classes = [""];
+	pendota.sizzleUpdateSignalListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_UPDATE") {
+				pendota.sizzleSelector = data.selector || "";
+				pendota.lastSizzleHighlightId = data.updateId;
+				pendota._pendota_highlight();
+			}
+		}
 	}
-	return classes;
-}
 
-// Function to check if specified ID is anywhere in the parent tree
-function someParentHasID(element, idName) {
-	if (!element) return null;
-	else if (element.id != null && element.id == idName) return true;
-	else
-		return !element.parentNode
-			? false
-			: someParentHasID(element.parentNode, idName);
-}
+	// Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
+	pendota._pendota_highlight = function() {
+		var selector = pendota.sizzleSelector;
+		var updateId = pendota.lastSizzleHighlightId;
+		pendota._pendota_remove_highlight();
+		if (pendota.sizzleIsActive && selector > "") {
+			try {
+				var selectedElms = $(selector);
+				var numMatch = 0;
+				for (var i = 0; i < selectedElms.length; i++) {
+					elm = selectedElms[i];;
+					if (
+						!pendota.someParentHasID(elm, pendota.taggingAidId) &&
+						!pendota.someParentHasClass(elm, pendota.outlineBoxClass)
+					) {
+						numMatch++;
+						var styles = elm.getBoundingClientRect();
+						let div = document.createElement("div");
+						div.className = "_pendota-highlight-selector_";
+						div.style.position = "fixed";
+						div.style.content = "";
+						div.style.height = `${styles.height + "px"}`;
+						div.style.width = `${styles.width + "px"}`;
+						div.style.top = `${styles.top + "px"}`;
+						div.style.right = `${styles.right + "px"}`;
+						div.style.bottom = `${styles.bottom + "px"}`;
+						div.style.left = `${styles.left + "px"}`;
+						div.style.background = "rgba(236,32,89,0.25)";
+						div.style.outline = "2px double #000";
+						div.style.zIndex = "9999998";
+						div.style.pointerEvents = "none";
+						document.body.appendChild(div);
+					}
+				}
+			} catch (error) {
+				numMatch = 0;
+			}
+			if (pendota.lastSizzleHighlightId > 0) {
+				pendota.sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
+				pendota.lastSizzleHighlightId = 0; // don't send duplicate counts on resize / scroll
+			}
+		}
+	}
 
-// Function to check if specified class is anywhere in the parent tree
-function someParentHasClass(element, className) {
-	if (!element) return null;
-	else {
-		var classes = jqClassToArr($(element).attr("class"));
-		if (!!classes && classes.includes(className)) return true;
+	pendota._pendota_remove_highlight = function() {
+		$("._pendota-highlight-selector_").remove();
+	}
+
+	pendota.jqClassToArr = function(classes) {
+		if (typeof classes != "undefined") {
+			classes = classes.split(/\s+/); // should not split on just ' ' because classes can be separated by other forms of whitespace
+		} else {
+			classes = [""];
+		}
+		return classes;
+	}
+
+	// Function to check if specified ID is anywhere in the parent tree
+	pendota.someParentHasID = function(element, idName) {
+		if (!element) return null;
+		else if (element.id != null && element.id == idName) return true;
 		else
 			return !element.parentNode
 				? false
-				: someParentHasClass(element.parentNode, className);
+				: pendota.someParentHasID(element.parentNode, idName);
 	}
-}
 
-function signalDeactivate() {
-	sendMessageToAllFrames(window, { type: "PENDOTA_DEACTIVATE" });
-}
+	// Function to check if specified class is anywhere in the parent tree
+	pendota.someParentHasClass = function(element, className) {
+		if (!element) return null;
+		else {
+			var classes = pendota.jqClassToArr($(element).attr("class"));
+			if (!!classes && classes.includes(className)) return true;
+			else
+				return !element.parentNode
+					? false
+					: pendota.someParentHasClass(element.parentNode, className);
+		}
+	}
 
-function signalDeactivateListener(e) {
-	if (typeof(e.data) !== "undefined") {
-		var data = tryParseJSON(e.data);
-		if (typeof(data.type) !== "undefined" && data.type === "PENDOTA_DEACTIVATE") {
-			_pendotaDeactivate_();
+	pendota.signalDeactivate = function() {
+		pendota.sendMessageToAllFrames(window, { type: "PENDOTA_DEACTIVATE" });
+	}
+
+	pendota.signalDeactivateListener = function(e) {
+		if (typeof(e.data) !== "undefined") {
+			var data = pendota.tryParseJSON(e.data);
+			if (typeof(data.type) !== "undefined" && data.type === "PENDOTA_DEACTIVATE") {
+				pendota._pendotaDeactivate_();
+			}
+		}
+	}
+
+	pendota._pendotaActivate_ = function() {
+		if (!pendota.pendotaIsActive) {
+			pendota.pendotaIsActive = true;
+			pendota.startMouseover();
+			if (typeof pendota._pendotaInsertUI_ !== "undefined") pendota._pendotaInsertUI_();
+
+			// add listener for signal update events
+			window.addEventListener("message", pendota.scannerUpdateSignalListener, true);
+
+			// add listener for signal lock events
+			window.addEventListener("message", pendota.scannerLockSignalListener, true);
+
+			// add listener for signal traverse up events
+			window.addEventListener(
+				"message",
+				pendota.scannerTraverseUpSignalListener,
+				true
+			);
+
+			// add listener for signal traverse down events
+			window.addEventListener(
+				"message",
+				pendota.scannerTraverseDownSignalListener,
+				true
+			);
+
+			// add listener for click to lock events
+			window.addEventListener("click", pendota.lockListener, true);
+
+			// add listener for keyboard lock events
+			window.addEventListener("keydown", pendota.keyLockListener);
+
+			// on scroll or resize, adjust the outline box
+			window.addEventListener("scroll", pendota.resetOutline);
+			window.addEventListener("resize", pendota.resetOutline);
+			
+			// add listener for sizzler activation and updates
+			window.addEventListener("message", pendota.sizzleSwitchSignalListener, true);
+			window.addEventListener("message", pendota.sizzleUpdateSignalListener, true);
+
+			// deactivate on signal from another frame
+			window.addEventListener("message", pendota.signalDeactivateListener, false);
+
+			pendota.blockMajorListeners();
+		}
+	}
+
+	pendota._pendotaDeactivate_ = function() {
+		if (pendota.pendotaIsActive) {
+			pendota.pendotaIsActive = false;
+			pendota.signalDeactivate();
+			pendota.stopMouseover();
+			$("." + pendota.outlineBoxClass).remove(); // Remove the outline
+			$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
+
+			// Remove UI if present
+			if (typeof pendota._pendotaRemoveUI_ !== "undefined") pendota._pendotaRemoveUI_();
+
+			// Remove all assigned listeners
+			window.removeEventListener(
+				"message",
+				pendota.scannerUpdateSignalListener,
+				true
+			);
+			window.removeEventListener("message", pendota.scannerLockSignalListener, true);
+			window.removeEventListener(
+				"message",
+				pendota.scannerTraverseUpSignalListener,
+				true
+			);
+			window.removeEventListener(
+				"message",
+				pendota.scannerTraverseDownSignalListener,
+				true
+			);
+			window.removeEventListener("click", pendota.lockListener, true);
+			window.removeEventListener("mouseover", pendota.mouseoverListener, true);
+			window.removeEventListener("mouseover", pendota.blockerFunction, true);
+			window.removeEventListener("keydown", pendota.keyLockListener);
+			window.removeEventListener("scroll", pendota.resetOutline);
+			window.removeEventListener("resize", pendota.resetOutline);
+			window.removeEventListener("message", pendota.sizzleSwitchSignalListener, true);
+			window.removeEventListener("message", pendota.sizzleUpdateSignalListener, true);
+			window.removeEventListener("message", pendota.signalDeactivateListener, false);
+			pendota.unblockMajorListeners();
 		}
 	}
 }
 
-function _pendotaActivate_() {
-	if (!pendotaIsActive) {
-		pendotaIsActive = true;
-		startMouseover();
-		if (typeof _pendotaInsertUI_ !== "undefined") _pendotaInsertUI_();
-
-		// add listener for signal update events
-		window.addEventListener("message", scannerUpdateSignalListener, true);
-
-		// add listener for signal lock events
-		window.addEventListener("message", scannerLockSignalListener, true);
-
-		// add listener for signal traverse up events
-		window.addEventListener(
-			"message",
-			scannerTraverseUpSignalListener,
-			true
-		);
-
-		// add listener for signal traverse down events
-		window.addEventListener(
-			"message",
-			scannerTraverseDownSignalListener,
-			true
-		);
-
-		// add listener for click to lock events
-		window.addEventListener("click", lockListener, true);
-
-		// add listener for keyboard lock events
-		window.addEventListener("keydown", keyLockListener);
-
-		// on scroll or resize, adjust the outline box
-		window.addEventListener("scroll", resetOutline);
-        window.addEventListener("resize", resetOutline);
-        
-        // add listener for sizzler activation and updates
-        window.addEventListener("message", sizzleSwitchSignalListener, true);
-        window.addEventListener("message", sizzleUpdateSignalListener, true);
-
-		// deactivate on signal from another frame
-		window.addEventListener("message", signalDeactivateListener, false);
-
-		blockMajorListeners();
-	}
-}
-
-function _pendotaDeactivate_() {
-	if (pendotaIsActive) {
-		pendotaIsActive = false;
-		signalDeactivate();
-		stopMouseover();
-		$("." + outlineBoxClass).remove(); // Remove the outline
-		$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
-
-		// Remove UI if present
-		if (typeof _pendotaRemoveUI_ !== "undefined") _pendotaRemoveUI_();
-
-		// Remove all assigned listeners
-		window.removeEventListener(
-			"message",
-			scannerUpdateSignalListener,
-			true
-		);
-		window.removeEventListener("message", scannerLockSignalListener, true);
-		window.removeEventListener(
-			"message",
-			scannerTraverseUpSignalListener,
-			true
-		);
-		window.removeEventListener(
-			"message",
-			scannerTraverseDownSignalListener,
-			true
-		);
-		window.removeEventListener("click", lockListener, true);
-		window.removeEventListener("mouseover", mouseoverListener, true);
-		window.removeEventListener("mouseover", blockerFunction, true);
-		window.removeEventListener("keydown", keyLockListener);
-		window.removeEventListener("scroll", resetOutline);
-        window.removeEventListener("resize", resetOutline);
-        window.removeEventListener("message", sizzleSwitchSignalListener, true);
-        window.removeEventListener("message", sizzleUpdateSignalListener, true);
-		window.removeEventListener("message", signalDeactivateListener, false);
-		unblockMajorListeners();
-	}
-}

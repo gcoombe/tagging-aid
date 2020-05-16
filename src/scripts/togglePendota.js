@@ -1,6 +1,6 @@
 // Check if base pendota is active
-if (typeof pendotaIsActive == "undefined" || !pendotaIsActive) {
-	_pendotaActivate_();
+if (typeof pendota.pendotaIsActive == "undefined" || !pendota.pendotaIsActive) {
+	pendota._pendotaActivate_();
 } else {
-	_pendotaDeactivate_();
+	pendota._pendotaDeactivate_();
 }
