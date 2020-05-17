@@ -589,7 +589,7 @@ if (!pendota._pendotaIsInjected) {
 			pendota.pendotaIsActive = false;
 			pendota.stopMouseover();
 			$("." + pendota.outlineBoxClass).remove(); // Remove the outline
-			$("._pendota-highlight-selector_").remove(); // Remove selector highlighter
+			pendota._pendotaDeactivateHighlight() // Remove the sizzler if active
 
 			// Remove UI if present
 			if (typeof pendota._pendotaRemoveUI_ !== "undefined") pendota._pendotaRemoveUI_();
