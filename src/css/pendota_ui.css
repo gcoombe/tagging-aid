@@ -5,6 +5,11 @@
 #_pendota-wrapper_ a:visited,
 #_pendota-wrapper_ a:active,
 #_pendota-wrapper_ *:focus {
+    --pendo-teal: #128297;
+    --pendo-dark-teal: #016479;
+    --pendo-pink: #ec2059;
+    --pendo-charcoal: #2f3641;
+    --light-gray: #aaaaaa;
 	background:none;
 	border:none;
     bottom:auto;
@@ -75,7 +80,11 @@
 #_pendota-wrapper_ ._pendota-feather-locked_ {
     height: 18px;
     width: 18px;
-    stroke: #222222;
+    stroke: var(--pendo-charcoal);
+}
+
+#_pendota-wrapper_ ._pendota-feather-locked_:hover {
+    stroke: var(--light-gray);
 }
 
 #_pendota-wrapper_ ._pendota-icon-locked_ * {
@@ -173,9 +182,17 @@
     width: 100%;
 }
 
+#_pendota-wrapper_ #_pendota-sizzler-icon_:hover {
+    background: #cacaca;
+}
+
 #_pendota-wrapper_ #_pendota-sizzler-icon_._pendota-clicked {
     background: #555;
     color: white;
+}
+
+#_pendota-wrapper_ #_pendota-sizzler-icon_._pendota-clicked:hover {
+    background: #777;
 }
 
 #_pendota-wrapper_ ._pendota_row-header_ {
@@ -221,8 +238,15 @@
 }
 
 #_pendota-wrapper_ #_pendota_exit_img_ {
-    stroke: #aaaaaa;
+    color: var(--light-gray);
+    font-size: 36px;
+    line-height: 0.5;
+    stroke: var(--light-gray);
 }
+
+#_pendota-wrapper_ #_pendota_exit_img_:hover {
+    color: var(--pendo-charcoal);
+} 
 
 #_pendota-wrapper_ #_pendota_exit_img_container_ {
     width: 24px;

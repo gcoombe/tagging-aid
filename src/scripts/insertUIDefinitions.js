@@ -20,7 +20,10 @@ if(!pendota._pendotaUIIsInjected) {
 	pendota.lastSizzleId;
 	pendota.sizzleCount;
 
-	// listen for lock signal
+    /*
+    * Listeners for a signal to enter locked/unlocked state
+    * @param {message} e
+    */
 	pendota.lockSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -30,7 +33,11 @@ if(!pendota._pendotaUIIsInjected) {
 		}
 	}
 
-	// listen for update signal
+
+    /*
+    * Listens for a signal to change the current locked element.
+    * @param {message} e
+    */
 	pendota.updateSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -44,6 +51,10 @@ if(!pendota._pendotaUIIsInjected) {
 		}
 	}
 
+    /*
+    * Changes the UI between locked and unlocked states. Locks if isLocked = true, otherwise unlocks.
+    * @param {boolean} isLocked
+    */
 	pendota.lockSwitch = function(isLocked) {
 		// locks or unlocks the pendota element scanner
 		// var el = e.target;
@@ -60,6 +71,9 @@ if(!pendota._pendotaUIIsInjected) {
 		}
 	}
 
+    /*
+    * Forces UI to locked state. Is idempotent.
+    */
 	pendota.lockedState = function() {
 		// Locks the scanner and UI
 		document.getElementById("_pendota_status_").textContent =
@@ -83,6 +97,9 @@ if(!pendota._pendotaUIIsInjected) {
 		pendota._pendota_isLocked_ = true;
 	}
 
+    /*
+    * Forces UI to unlocked state. Is idempotent.
+    */
 	pendota.unlockedState = function() {
 		// if already locked, unlocks instead
 		// Set the lock icon to starting "unlocked" state
@@ -101,7 +118,10 @@ if(!pendota._pendotaUIIsInjected) {
 		pendota._pendota_isLocked_ = false;
 	}
 
-	// Define the copy function
+    /*
+    * Reusable function that copies the content of an element with ID matching inputId to the clipboard.
+    * @param {element} inputId
+    */
 	pendota.copyToClipboard = function(inputId) {
 		// Get the text field
 		var copyText = document.getElementById(inputId);
@@ -114,7 +134,9 @@ if(!pendota._pendotaUIIsInjected) {
 		document.execCommand("copy");
 	}
 
-	// Apply the copy function to all copy icons
+    /*
+    * Finds all copy icons currently in the UI and applies the copy function targeted at the corresponding box. 
+    */
 	pendota.applyCopyFunction = function() {
 		$("._pendota-copy-link_").on("click", function (e) {
 			e.stopPropagation();
@@ -123,8 +145,11 @@ if(!pendota._pendotaUIIsInjected) {
 		});
 	}
 
-	// Takes an html element in JSON form as an input and updates the Tagging Aid form to display its details
-	pendota.updatePendotaContents = function(e) {
+    /*
+    * Updates the element, ID, and classes in the tagging aid UI.
+    * @param {element} e
+    */	
+    pendota.updatePendotaContents = function(e) {
 		// Get the target element's Id and Classes
 		var _id_ = e.id;
 		var _classNames_ = e.classes;
@@ -171,7 +196,9 @@ if(!pendota._pendotaUIIsInjected) {
 		pendota.applyCopyFunction();
 	}
 
-	// Turns on sizzle UI
+    /*
+    * Sends a signal to activate the Sizzler on all frames and directly activates in the UI.
+    */
 	pendota._pendotaActivateSizzler = function() {
 		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: true});
 		pendota.signalSizzlerUpdate();
@@ -183,7 +210,9 @@ if(!pendota._pendotaUIIsInjected) {
 		window.addEventListener("message", pendota.sizzlerCountSignalListener, true);
 	}
 
-	// Turns off sizzle UI
+    /*
+    * Sends a signal to deactivate the Sizzler on all frames and removes it from the UI.
+    */
 	pendota._pendotaDeactivateSizzler = function() {
 		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: false });
 		$("#" + pendota.sizzlerBtnId).removeClass("_pendota-clicked");
@@ -195,18 +224,28 @@ if(!pendota._pendotaUIIsInjected) {
 		window.removeEventListener("message", pendota.sizzlerCountSignalListener, true);
 	}
 
-	// Signals sizzler change
+    /*
+    * Sends a message to all frames to change the current sizzler selector to the value in the UI.
+    */
 	pendota.signalSizzlerUpdate = function() {
 		pendota.sizzleCount = 0;
 		pendota.lastSizzleId = pendota.fiveDigitId();
 		pendota.sendMessageToAllFrames(window, {type: "SIZZLE_UPDATE", selector: document.getElementById(pendota.sizzlerInputId).value, updateId: pendota.lastSizzleId});
 	}
 
+    /*
+    * As count updates come in, builds a count of Sizzler matches in every frame.
+    * @param {int} value
+    */
 	pendota.addToSizzleCount = function(value) {
 		pendota.sizzleCount += value;
 		document.getElementById(pendota.sizzlerCountId).innerHTML = "(" + pendota.sizzleCount + ")";
 	}
 
+    /*
+    * Listens for incoming count report signals. Does not add them if they do not match the most recent Sizzler updateId.
+    * @param {message} e
+    */
 	pendota.sizzlerCountSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -216,10 +255,17 @@ if(!pendota._pendotaUIIsInjected) {
 		}
 	}
 
+    /*
+    * Randomizes a 5-digit ID for the sizzler update process.
+    * @returns {int}	a random int, always 5 digits
+    */
 	pendota.fiveDigitId = function() {
 		return Math.floor(Math.random() * 90000) + 10000;
 	}
 
+    /*
+    * Displays the tagging aid UI and turns on relevant listeners.
+    */
 	pendota._pendotaInsertUI_ = function() {
 		//Injects the tag assistant UI
 		pendota._pendota_isVisible_ = true;
@@ -335,7 +381,10 @@ if(!pendota._pendotaUIIsInjected) {
 			});
 	}
 
-	// Defines function to later remove the Pendo Tag Assistant UI
+
+    /*
+    * Removes the tagging aid UI and listeners.
+    */
 	pendota._pendotaRemoveUI_ = function() {
 		pendota._pendota_isVisible_ = false;
 

@@ -148,7 +148,7 @@ if (!pendota._pendotaIsInjected) {
     /*
     * Checks if window message is an update to the current highlighted element.
     * If true, removes the current tracked element and highlight box in the frame.
-    * @param {event} e
+    * @param {message} e
     */
 	pendota.scannerUpdateSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
@@ -166,7 +166,7 @@ if (!pendota._pendotaIsInjected) {
 
     /*
     * Checks if window message is a signal to move up the parent tree. If true, updates the highlight box and the UI (if present).
-    * @param {event} e
+    * @param {message} e
     */
 	pendota.scannerTraverseUpSignalListener = function(e) {
 		var currentElem = {};
@@ -186,6 +186,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Checks if window message is a signal to move down the parent tree. If true, updates the highlight box and the UI (if present).
+    * @param {message} e
+    */
 	pendota.scannerTraverseDownSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -202,19 +206,29 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
-	// Define the basic mouseover functionality
+    /*
+    * Applies the correct listeners to activate the mouseover scanning behavior.
+    */
 	pendota.startMouseover = function() {
 		pendota.scannerIsActive = true;
 		window.removeEventListener("mouseover", pendota.blockerFunction, true);
 		window.addEventListener("mouseover", pendota.mouseoverListener, true);
 	}
 
+    /*
+    * Removes the mouseover scanning listener and applies a blocker function to avoid undesired dom changes.
+    */
 	pendota.stopMouseover = function() {
 		pendota.scannerIsActive = false;
 		window.addEventListener("mouseover", pendota.blockerFunction, true);
 		window.removeEventListener("mouseover", pendota.mouseoverListener, true);
 	}
 
+    /*
+    * Converts a dom object and its parent tree into a message-passable object, recursively.
+    * @param    {object}    element
+    * @returns  {object}    the converted element, stripped to only its element type, ID, classes, and array of parents (also converted).
+    */
 	pendota.passableObject = function(element) {
 		if (!element) return null;
 		else {
@@ -227,6 +241,11 @@ if (!pendota._pendotaIsInjected) {
 		return outElm;
 	}
 
+    /*
+    * Fires a message to all frames to enter a locked/unlocked state. isLocked = true results in a locked state.
+    * @param {message}    e
+    * @param {boolean}  isLocked
+    */
 	pendota.signalLockSwitch = function(e, isLocked) {
 		e.preventDefault();
 		if (
@@ -240,6 +259,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Listens for the lock signal message and fires the locking function when received.
+    * @param {message}  e
+    */
 	pendota.scannerLockSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -249,6 +272,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * If isLocked is true, enters a locked state. Otherwise, enters unlocked state. Does not switch UI.
+    * @param {boolean} isLocked
+    */
 	pendota.scannerLockSwitch = function(isLocked) {
 		if (typeof (isLocked !== "undefined")) {
 			if (isLocked) pendota.stopMouseover();
@@ -259,7 +286,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
-	// A click event will "lock" the fields in their current state.  Clicking again will re-enable. If the X button is clicked, this overrides the lock switch functionality.
+    /*
+    * Checks every click event in the bubble phase for whether it should activate a lock switch or deactivate the tagging aid.
+    * @param {event} e
+    */
 	pendota.lockListener = function(e) {
 		e.preventDefault();
 		el = e.target;
@@ -272,6 +302,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Checks every click event for the ESC key or the lock shortcut (Alt + Shift + L).
+    * @param {event} e
+    */
 	pendota.keyLockListener = function(e) {
 		if (e.altKey && e.shiftKey && e.keyCode == 76) {
 			// alt + shift + L to lock/unlock
@@ -284,6 +318,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Creates a floating unclickable div to highlight the element passed in.
+    * @param {element} e
+    */
 	pendota.updateOutline = function(e) {
 		// Controls highlight box
 		$("._pendota-outline_").remove();
@@ -303,43 +341,62 @@ if (!pendota._pendotaIsInjected) {
 		document.body.appendChild(div);
 	}
 
-	var thUpdateOutline = _.throttle(pendota.updateOutline, 50);
+    /*
+    * Uses lodash to create a throttled version of the updateOutline function.
+    * Was used on scrolls and resizes but the choppiness didn't look good. Performance has not been a major issue without it.
+    * @param {element} e
+    */
+	pendota.thUpdateOutline = _.throttle(pendota.updateOutline, 25);
 
+    /*
+    * Retrieves the last known outlined object and redraws the highlight box using the throttled function.
+    * For use on scroll or resize events.
+    */
 	pendota.resetOutline = function() {
 		if (pendota.scannerElementArray.length > 0)
-			thUpdateOutline(pendota.scannerElementArray[pendota.scannerElementArray.length - 1]);
+			pendota.updateOutline(pendota.scannerElementArray[pendota.scannerElementArray.length - 1]);
 	}
 
-	// Turns on sizzle highlighting function
-	pendota._pendotaActivateHighlight = function(selector) {
+    /*
+    * Turns on Sizzle highlighting behavior for the current frame. Sets the first Sizzle selector value.
+    */
+	pendota._pendotaActivateHighlight = function() {
 		pendota.sizzleIsActive = true;
-		pendota.sizzleSelector = selector;
-		pendota._pendota_highlight();
-		$(window).on("resize", pendota._pendota_highlight);
-		$(window).on("scroll", pendota._pendota_highlight);
+		window.addEventListener("resize", pendota._pendota_highlight, true);
+		window.addEventListener("scroll", pendota._pendota_highlight, true);
 	}
 
-	// Turns off sizzle highlighting
+    /*
+    * Turns off Sizzle highlighting behavior for the current frame.
+    */
 	pendota._pendotaDeactivateHighlight = function() {
 		pendota.sizzleIsActive = false;
-		$(window).off("resize", pendota._pendota_highlight);
-		$(window).off("scroll", pendota._pendota_highlight);
+		window.removeEventListener("resize", pendota._pendota_highlight, true);
+		window.removeEventListener("scroll", pendota._pendota_highlight, true);
 		pendota._pendota_remove_highlight();
 	}
 
+    /*
+    * Listens for window messages indicating sizzle should change states to on/off. If isActive is true, sets to on, otherwise off.
+    * @param {message} e
+    */
 	pendota.sizzleSwitchSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
 			if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_SWITCH") {
 				if (!!data.isActive) {
-					pendota._pendotaActivateHighlight(data.selector || "");
+					pendota._pendotaActivateHighlight();
 				} else {
 					pendota._pendotaDeactivateHighlight();
 				}
 			}
 		}
-	}
-
+    }
+    
+    /*
+    * Listens for window messages with a change in Sizzle selector.
+    * @param {message} e
+    */
 	pendota.sizzleUpdateSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -351,7 +408,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
-	// Function that adds the highlighting element to all matched elements if they are not part of the tagging aid
+    /*
+    * Checks the currently stored selector and updates Sizzle highlighting to match.
+    * @param {
+    */
 	pendota._pendota_highlight = function() {
 		var selector = pendota.sizzleSelector;
 		var updateId = pendota.lastSizzleHighlightId;
@@ -395,10 +455,18 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Removes any active sizzle boxes.
+    */
 	pendota._pendota_remove_highlight = function() {
 		$("._pendota-highlight-selector_").remove();
 	}
 
+    /*
+    * Converts the jQuery classes attribute to a list of separated strings in an array.
+    * @param    {object}    classes
+    * @returns  {array}     array of classname strings
+    */
 	pendota.jqClassToArr = function(classes) {
 		if (typeof classes != "undefined") {
 			classes = classes.split(/\s+/); // should not split on just ' ' because classes can be separated by other forms of whitespace
@@ -408,7 +476,13 @@ if (!pendota._pendotaIsInjected) {
 		return classes;
 	}
 
-	// Function to check if specified ID is anywhere in the parent tree
+
+    /*
+    * Travels recursively up the parent tree looking for any element with id = idName.
+    * @param    {object}    element
+    * @param    {string}    idName
+    * @returns  {boolean}   True if the element or any of its parents have id = idName. Otherwise false.
+    */
 	pendota.someParentHasID = function(element, idName) {
 		if (!element) return null;
 		else if (element.id != null && element.id == idName) return true;
@@ -418,7 +492,13 @@ if (!pendota._pendotaIsInjected) {
 				: pendota.someParentHasID(element.parentNode, idName);
 	}
 
-	// Function to check if specified class is anywhere in the parent tree
+
+    /*
+    * Travels recursively up the parent tree looking for any element with a class matching className.
+    * @param    {object}    element
+    * @param    {string}    className
+    * @returns  {boolean}   True if the element or any of its parents have a class matching className. Otherwise false.
+    */
 	pendota.someParentHasClass = function(element, className) {
 		if (!element) return null;
 		else {
@@ -431,10 +511,17 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Sends a signal to all frames that the tagging aid and its UI should be removed.
+    */
 	pendota.signalDeactivate = function() {
 		pendota.sendMessageToAllFrames(window, { type: "PENDOTA_DEACTIVATE" });
 	}
 
+    /*
+    * Listens for a signal to shut down all aspects of the tagging aid, including the UI.
+    * @param {message} e
+    */
 	pendota.signalDeactivateListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -444,6 +531,9 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Displays the tagging aid and (if loaded) the UI.
+    */
 	pendota._pendotaActivate_ = function() {
 		if (!pendota.pendotaIsActive) {
 			pendota.pendotaIsActive = true;
@@ -491,6 +581,9 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Removes the tagging aid and (if loaded) the UI.
+    */
 	pendota._pendotaDeactivate_ = function() {
 		if (pendota.pendotaIsActive) {
 			pendota.pendotaIsActive = false;
@@ -501,7 +594,7 @@ if (!pendota._pendotaIsInjected) {
 			// Remove UI if present
 			if (typeof pendota._pendotaRemoveUI_ !== "undefined") pendota._pendotaRemoveUI_();
 
-			// Remove all assigned listeners
+			// Remove all listeners assigned in _pendotaActivate_
 			window.removeEventListener(
 				"message",
 				pendota.scannerUpdateSignalListener,
