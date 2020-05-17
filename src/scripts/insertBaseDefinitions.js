@@ -1,55 +1,80 @@
 if (typeof(window.pendota) === "undefined") {
+    // checks if the window pendota object already exists.
+    // all functions and global vars are stored under this object.
 	window.pendota = {};
 }
 
+// Defines a global reference to the window.pendota object.
 var pendota = window.pendota;
 
+// Avoids injecting the global definitions/variables more than once.
 if (!pendota._pendotaIsInjected) {
-	pendota._pendotaIsInjected = true;
-	// Global listener functions so they can be removed easily
+    pendota._pendotaIsInjected = true;
+    
+    /*
+    * Simple function that blocks all following functions from executing on an event.
+    * @param {event} e
+    */
 	pendota.blockerFunction = function(e) {
 		e.preventDefault();
 		e.stopPropagation();
 	}
 
+    /*
+    * Calls the blocker function unless the elemnt activated was part of the tagging aid UI.
+    * @param {event} e
+    */    
 	pendota.nonTABlockerFunction = function(e) {
 		if (!pendota.someParentHasID(e.target, pendota.taggingAidId)) {
 			pendota.blockerFunction(e);
 		}
 	}
 
-	// Global status variables
+	// Global status variables.
 	pendota.pendotaIsActive = false;
 	pendota.sizzleIsActive = false;
 	pendota.scannerIsActive = false;
 	pendota.sentLastUpdate = false;
 
-	// Locked elements
+	// Locked elements.
 	pendota.scannerElementArray = [];
 	pendota.sizzleSelector = "";
 	pendota.lastSizzleHighlightId = 0; // ID used to connect match counts with the request triggered them
 
 	// reused variables
-
 	pendota.taggingAidId = "_pendota-tag-assistant_";
 	pendota.lockedIconClass = "_pendota-icon-locked_";
 	pendota.outlineBoxClass = "_pendota-outline_";
 	pendota.exitImgContainerId = "_pendota_exit_img_container_";
 
+    // collection of listener types to block outside the tagging aid.
 	pendota.listenersToBlock = ["submit", "change", "input", "focus", "click"];
 
+    /*
+    * Loops through the designated listeners to block and blocks them all if outside the tagging aid UI.
+    */
 	pendota.blockMajorListeners = function() {
 		pendota.listenersToBlock.forEach(function (ltype) {
 			window.addEventListener(ltype, pendota.nonTABlockerFunction, true);
 		});
 	}
 
+    /*
+    * Loops through the previously blocked listeners and removes the blocker function. 
+    */
 	pendota.unblockMajorListeners = function() {
 		pendota.listenersToBlock.forEach(function (ltype) {
 			window.removeEventListener(ltype, pendota.nonTABlockerFunction, true);
 		});
 	}
 
+    /*
+    * Checks if tgt is the ultimate parent window. 
+    * If true, starts the recursive child message sending.
+    * If false, recursively checks the parent. 
+    * @param {object}    tgt
+    * @param {string}    msg
+    */
 	pendota.sendMessageToAllFrames = function(tgt, msg) {
 		if (tgt.parent === tgt) {
 			pendota.sendMessageToChildFrames(tgt, msg);
@@ -58,6 +83,11 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Recursively travels down to every child of tgt and delivers the message msg
+    * @param {object}    tgt
+    * @param {string}    msg
+    */
 	pendota.sendMessageToChildFrames = function(tgt, msg) {
 		if (typeof msg !== "string") msg = JSON.stringify(msg);
 		tgt.postMessage(msg, "*");
@@ -66,6 +96,11 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * If given a string, tries to parse it to a JSON. If it fails, returns the original string.
+    * @param    {string}             msg
+    * @returns  {(object|string)}    the converted object, or the original string.
+    */
 	pendota.tryParseJSON = function(msg) {
 		if (typeof msg === "string") {
 			try {
@@ -79,6 +114,13 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * On mouseover of any new element, does the following:
+    * - creates an outline box on that element
+    * - sends a signal to remove any other outline boxes in any frame 
+    * - sends a signal to update the UI for a new hovered element
+    * @param {event} e
+    */
 	pendota.mouseoverListener = function(e) {
 		// Defines the actual mouseover function
 		pendota.blockerFunction(e);
@@ -103,6 +145,11 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Checks if window message is an update to the current highlighted element.
+    * If true, removes the current tracked element and highlight box in the frame.
+    * @param {event} e
+    */
 	pendota.scannerUpdateSignalListener = function(e) {
 		if (typeof(e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
@@ -117,6 +164,10 @@ if (!pendota._pendotaIsInjected) {
 		}
 	}
 
+    /*
+    * Checks if window message is a signal to move up the parent tree. If true, updates the highlight box and the UI (if present).
+    * @param {event} e
+    */
 	pendota.scannerTraverseUpSignalListener = function(e) {
 		var currentElem = {};
 		if (typeof(e.data) !== "undefined") {

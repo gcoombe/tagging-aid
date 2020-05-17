@@ -9,7 +9,7 @@ document.head.appendChild(elt);
 
 if (!window.sendMsgToExt) { // only add the listener once
     window.sendMsgToExt = function(event) {
-        // We only accept messages from ourselves
+        // Only accept messages from primary frame
         if (event.source != window)
           return;
       
