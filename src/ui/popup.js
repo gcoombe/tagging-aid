@@ -22,11 +22,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 				);
 				console.log("message: ", request);
 				if (request.hasOwnProperty("designerEnabled")) {
-					if (!!request.designerEnabled) {
-						document.getElementById(
-							pendotaPopupId
-						).innerHTML = `Cannot activate tagging aid while the designer is open.`;
-					} else {
 						document.getElementById(pendotaPopupId).innerHTML = "";
 						if (!!request.pendoExists) {
 							var btnDes = document.createElement("button");
@@ -84,7 +79,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						document.getElementById(pendotaPopupId).appendChild(btnTA);
 					}
 				}
-			}
 		);
 
 		// Triggers script that sends message about whether designer is open

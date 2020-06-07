@@ -13,6 +13,7 @@ if(!pendota._pendotaUIIsInjected) {
 	pendota.pendo_target_url = chrome.extension.getURL(
 		"/src/ui/images/pendo_target.png"
 	);
+	pendota.tagBuild = [];
 
 	// Global status variables
 	pendota._pendota_isVisible_ = false;
@@ -194,6 +195,40 @@ if(!pendota._pendotaUIIsInjected) {
 
 		// Define the copy function for all copy icons
 		pendota.applyCopyFunction();
+	}
+
+	/*
+    * Adds an attribute in the appropriate location in the tag being built.
+    * @param {int}		tier
+	* @param {string}	attribute
+	* @param {string}	value
+    */
+	pendota.addToTagBuild = function(tier, attribute, value) {
+		var newVal = {"attribute": attribute, "value": value};
+		if (pendota.tagBuild.length == 0) {
+			pendota.tagBuild.push({'tier': tier, "items": [newVal]});
+		} else {
+			for (var i = 0; i < pendota.tagBuild.length; i++) {
+				if (pendota.tagBuild[i].tier == tier) {
+					pendota.tagBuild[i].items.push(newVal);
+					break;
+				} else if (pendota.tagBuild[i].tier < tier  || i == pendota.tagBuild.length - 1) {
+					pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, {"tier": tier, "items": [newVal]}, i);
+					break;
+				}
+			}
+		}
+		console.log('tagBuild', pendota.tagBuild);
+	}
+	
+    /*
+    * Returns a new array with value injected at the provided index, and all subsequent values pushed back one index
+    * @param {array} inArray
+	* @param {any}	 value
+	* @param {index} int
+    */
+	pendota.injectIntoArray = function (inArray, value, index) {
+		return inArray.slice(0, index - 1).concat(value).concat(inArray.slice(index));
 	}
 
     /*
