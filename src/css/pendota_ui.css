@@ -275,9 +275,10 @@
     cursor: move;
 }
 
-#_pendota-wrapper_ ._pendota-copy-icon_ {
+#_pendota-wrapper_ ._pendota-copy-icon_,
+#_pendota-wrapper_ ._pendota-addtobuild-icon_ {
     cursor: pointer;
-    width: 20px;
+    height: 20px;
 }
 
 #_pendota-wrapper_ #_pendota-button-fix_ {

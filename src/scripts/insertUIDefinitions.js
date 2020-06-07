@@ -1,5 +1,5 @@
 // NOTE: this script depends on insertBaseDefinitions being executed first
-if(!pendota._pendotaUIIsInjected) {
+if (!pendota._pendotaUIIsInjected) {
 	pendota._pendotaUIIsInjected = true;
 
 	// Stores an array of elements traversed by the parent arrows. Resets on every mouseover when in unlocked state
@@ -13,6 +13,7 @@ if(!pendota._pendotaUIIsInjected) {
 	pendota.pendo_target_url = chrome.extension.getURL(
 		"/src/ui/images/pendo_target.png"
 	);
+	pendota.plus_sq_url = chrome.extension.getURL("/src/ui/images/plus-square.png");
 	pendota.tagBuild = [];
 
 	// Global status variables
@@ -25,10 +26,10 @@ if(!pendota._pendotaUIIsInjected) {
     * Listeners for a signal to enter locked/unlocked state
     * @param {message} e
     */
-	pendota.lockSignalListener = function(e) {
-		if (typeof(e.data) !== "undefined") {
+	pendota.lockSignalListener = function (e) {
+		if (typeof (e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
-			if (typeof(data.type) !== "undefined" && data.type == "LOCK_SWITCH") {
+			if (typeof (data.type) !== "undefined" && data.type == "LOCK_SWITCH") {
 				pendota.lockSwitch(data.isLocked);
 			}
 		}
@@ -39,10 +40,10 @@ if(!pendota._pendotaUIIsInjected) {
     * Listens for a signal to change the current locked element.
     * @param {message} e
     */
-	pendota.updateSignalListener = function(e) {
-		if (typeof(e.data) !== "undefined") {
+	pendota.updateSignalListener = function (e) {
+		if (typeof (e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
-			if (typeof(data.type) !== "undefined" && data.type == "PENDOTA_UPDATE") {
+			if (typeof (data.type) !== "undefined" && data.type == "PENDOTA_UPDATE") {
 				pendota.updatePendotaContents(data.element);
 
 				// Reset parent traversal tree
@@ -56,7 +57,7 @@ if(!pendota._pendotaUIIsInjected) {
     * Changes the UI between locked and unlocked states. Locks if isLocked = true, otherwise unlocks.
     * @param {boolean} isLocked
     */
-	pendota.lockSwitch = function(isLocked) {
+	pendota.lockSwitch = function (isLocked) {
 		// locks or unlocks the pendota element scanner
 		// var el = e.target;
 		if (typeof isLocked !== "undefined") {
@@ -75,7 +76,7 @@ if(!pendota._pendotaUIIsInjected) {
     /*
     * Forces UI to locked state. Is idempotent.
     */
-	pendota.lockedState = function() {
+	pendota.lockedState = function () {
 		// Locks the scanner and UI
 		document.getElementById("_pendota_status_").textContent =
 			"Element Locked.  Click anywhere to reset.";
@@ -101,7 +102,7 @@ if(!pendota._pendotaUIIsInjected) {
     /*
     * Forces UI to unlocked state. Is idempotent.
     */
-	pendota.unlockedState = function() {
+	pendota.unlockedState = function () {
 		// if already locked, unlocks instead
 		// Set the lock icon to starting "unlocked" state
 		$("#_pendota-lock-icon_").html(
@@ -123,7 +124,7 @@ if(!pendota._pendotaUIIsInjected) {
     * Reusable function that copies the content of an element with ID matching inputId to the clipboard.
     * @param {element} inputId
     */
-	pendota.copyToClipboard = function(inputId) {
+	pendota.copyToClipboard = function (inputId) {
 		// Get the text field
 		var copyText = document.getElementById(inputId);
 
@@ -135,22 +136,83 @@ if(!pendota._pendotaUIIsInjected) {
 		document.execCommand("copy");
 	}
 
+	/*
+	* The listener that copies the identified value to the clipboard
+	* @param {event} e
+	*/
+	pendota.copyListener = function (e) {
+		e.stopPropagation();
+		e.preventDefault();
+		pendota.copyToClipboard(e.currentTarget.dataset.id);
+	}
+
     /*
     * Finds all copy icons currently in the UI and applies the copy function targeted at the corresponding box. 
     */
-	pendota.applyCopyFunction = function() {
-		$("._pendota-copy-link_").on("click", function (e) {
-			e.stopPropagation();
-			e.preventDefault();
-			pendota.copyToClipboard(e.currentTarget.id);
-		});
+	pendota.applyCopyFunction = function () {
+		$("._pendota-copy-link_").off("click", pendota.copyListener);
+		$("._pendota-copy-link_").on("click", pendota.copyListener);
+	}
+
+	/*
+		* Adds an attribute in the appropriate location in the tag being built.
+		* @param {int}		tier
+		* @param {string}	attribute
+		* @param {string}	value
+		*/
+	pendota.addToTagBuild = function (tier, attribute, value) {
+		var newVal = { "attribute": attribute, "value": value };
+		if (pendota.tagBuild.length == 0) {
+			pendota.tagBuild.push({ 'tier': tier, "items": [newVal] });
+		} else {
+			for (var i = 0; i < pendota.tagBuild.length; i++) {
+				if (pendota.tagBuild[i].tier == tier) {
+					pendota.tagBuild[i].items.push(newVal);
+					break;
+				} else if (pendota.tagBuild[i].tier < tier || i == pendota.tagBuild.length - 1) {
+					pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, { "tier": tier, "items": [newVal] }, i);
+					break;
+				}
+			}
+		}
+		console.log('tagBuild', pendota.tagBuild);
+	}
+
+	/*
+	* Returns a new array with value injected at the provided index, and all subsequent values pushed back one index
+	* @param {array} inArray
+	* @param {any}	 value
+	* @param {index} int
+	*/
+	pendota.injectIntoArray = function (inArray, value, index) {
+		return inArray.slice(0, index - 1).concat(value).concat(inArray.slice(index));
+	}
+
+	/*
+	* The listener function that adds a value to the tag build
+	* @param {event} e
+	*/
+	pendota.addToBuildListener = function (e) {
+		e.stopPropagation();
+		e.preventDefault();
+		inp = document.getElementById(e.currentTarget.dataset.id);
+		console.log(inp);
+		pendota.addToTagBuild(pendota._pendota_elem_array_.length - 1, inp.dataset.attr, inp.dataset.rawvalue);
+	};
+
+	/*
+    * Finds all plus_square icons currently in the UI and applies the addtobuild function targeted at the corresponding box. 
+    */
+   	pendota.applyAddFunction = function () {
+		$("._pendota-addtobuild-btn_").off("click", pendota.addToBuildListener);
+		$("._pendota-addtobuild-btn_").on("click", pendota.addToBuildListener);
 	}
 
     /*
     * Updates the element, ID, and classes in the tagging aid UI.
     * @param {element} e
-    */	
-    pendota.updatePendotaContents = function(e) {
+    */
+	pendota.updatePendotaContents = function (e) {
 		// Get the target element's Id and Classes
 		var _id_ = e.id;
 		var _classNames_ = e.classes;
@@ -160,9 +222,12 @@ if(!pendota._pendotaUIIsInjected) {
 		var appendedHTML = ""; // clear extra class results
 
 		// Set the result boxes that are always visible
-		$("#_pendota_type-result_").val("" + _elemType_);
-		$("#_pendota_id-result_").val("#" + _id_);
-		$("#_pendota_class-result-0_").val("." + _classNames_[0]);
+		$("#_pendota_type-result_").attr("value", "" + _elemType_);
+		$("#_pendota_type-result_").attr("data-rawvalue", _elemType_);
+		$("#_pendota_id-result_").attr("value", "#" + _id_);
+		$("#_pendota_id-result_").attr("data-rawvalue", _id_);
+		$("#_pendota_class-result-0_").attr("value", "." + _classNames_[0]);
+		$("#_pendota_class-result-0_").attr("data-rawvalue", _classNames_[0]);
 		$("#_pendota_template-table_").empty();
 
 		// Build extra class spaces
@@ -170,19 +235,24 @@ if(!pendota._pendotaUIIsInjected) {
 			appendedHTML =
 				appendedHTML +
 				"<tr>" +
-				'<td width="90%" class="_pendota_input-row_"><input no-drag class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
+				'<td width="82%" class="_pendota_input-row_"><input no-drag class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
 				i +
-				'_" value=".' +
+				'_"  data-attr="class" data-rawvalue="' + _classNames_[i] + '" value=".' +
 				_classNames_[i] +
 				'" readonly></td>' +
 				'<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
 				'<td width="8%" class="_pendota_input-row_">' +
-				'<div id="_pendota_class-result-' +
+				'<div data-id="_pendota_class-result-' + i + '_" class="_pendota-addtobuild-btn_">' +
+				'<a href="#"><img class="_pendota-addtobuild-icon_" src=' + pendota.plus_sq_url + '></a>' +
+				'</div>' +
+				'</td>' +
+				'<td width="8%" class="_pendota_input-row_">' +
+				'<div data-id="_pendota_class-result-' +
 				i +
 				'_" class="_pendota-copy-link_");\'>' +
 				'<a href="#"><img class=_pendota-copy-icon_ src=' +
 				pendota.copy_icon_url +
-				' style="width:20px;"></a>' +
+				'> </a>' +
 				"</div>" +
 				"</td>" +
 				"</tr>";
@@ -195,47 +265,14 @@ if(!pendota._pendotaUIIsInjected) {
 
 		// Define the copy function for all copy icons
 		pendota.applyCopyFunction();
-	}
-
-	/*
-    * Adds an attribute in the appropriate location in the tag being built.
-    * @param {int}		tier
-	* @param {string}	attribute
-	* @param {string}	value
-    */
-	pendota.addToTagBuild = function(tier, attribute, value) {
-		var newVal = {"attribute": attribute, "value": value};
-		if (pendota.tagBuild.length == 0) {
-			pendota.tagBuild.push({'tier': tier, "items": [newVal]});
-		} else {
-			for (var i = 0; i < pendota.tagBuild.length; i++) {
-				if (pendota.tagBuild[i].tier == tier) {
-					pendota.tagBuild[i].items.push(newVal);
-					break;
-				} else if (pendota.tagBuild[i].tier < tier  || i == pendota.tagBuild.length - 1) {
-					pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, {"tier": tier, "items": [newVal]}, i);
-					break;
-				}
-			}
-		}
-		console.log('tagBuild', pendota.tagBuild);
-	}
-	
-    /*
-    * Returns a new array with value injected at the provided index, and all subsequent values pushed back one index
-    * @param {array} inArray
-	* @param {any}	 value
-	* @param {index} int
-    */
-	pendota.injectIntoArray = function (inArray, value, index) {
-		return inArray.slice(0, index - 1).concat(value).concat(inArray.slice(index));
+		pendota.applyAddFunction();
 	}
 
     /*
     * Sends a signal to activate the Sizzler on all frames and directly activates in the UI.
     */
-	pendota._pendotaActivateSizzler = function() {
-		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: true});
+	pendota._pendotaActivateSizzler = function () {
+		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: true });
 		pendota.signalSizzlerUpdate();
 		$("#" + pendota.sizzlerBtnId).addClass("_pendota-clicked");
 		$("#" + pendota.sizzlerBtnId).html("Stop");
@@ -248,7 +285,7 @@ if(!pendota._pendotaUIIsInjected) {
     /*
     * Sends a signal to deactivate the Sizzler on all frames and removes it from the UI.
     */
-	pendota._pendotaDeactivateSizzler = function() {
+	pendota._pendotaDeactivateSizzler = function () {
 		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_SWITCH", isActive: false });
 		$("#" + pendota.sizzlerBtnId).removeClass("_pendota-clicked");
 		$("#" + pendota.sizzlerBtnId).html("Test");
@@ -262,17 +299,17 @@ if(!pendota._pendotaUIIsInjected) {
     /*
     * Sends a message to all frames to change the current sizzler selector to the value in the UI.
     */
-	pendota.signalSizzlerUpdate = function() {
+	pendota.signalSizzlerUpdate = function () {
 		pendota.sizzleCount = 0;
 		pendota.lastSizzleId = pendota.fiveDigitId();
-		pendota.sendMessageToAllFrames(window, {type: "SIZZLE_UPDATE", selector: document.getElementById(pendota.sizzlerInputId).value, updateId: pendota.lastSizzleId});
+		pendota.sendMessageToAllFrames(window, { type: "SIZZLE_UPDATE", selector: document.getElementById(pendota.sizzlerInputId).value, updateId: pendota.lastSizzleId });
 	}
 
     /*
     * As count updates come in, builds a count of Sizzler matches in every frame.
     * @param {int} value
     */
-	pendota.addToSizzleCount = function(value) {
+	pendota.addToSizzleCount = function (value) {
 		pendota.sizzleCount += value;
 		document.getElementById(pendota.sizzlerCountId).innerHTML = "(" + pendota.sizzleCount + ")";
 	}
@@ -281,10 +318,10 @@ if(!pendota._pendotaUIIsInjected) {
     * Listens for incoming count report signals. Does not add them if they do not match the most recent Sizzler updateId.
     * @param {message} e
     */
-	pendota.sizzlerCountSignalListener = function(e) {
-		if (typeof(e.data) !== "undefined") {
+	pendota.sizzlerCountSignalListener = function (e) {
+		if (typeof (e.data) !== "undefined") {
 			var data = pendota.tryParseJSON(e.data);
-			if (typeof(data.type) !== "undefined" && data.type == "SIZZLE_COUNT" && data.updateId == pendota.lastSizzleId) {
+			if (typeof (data.type) !== "undefined" && data.type == "SIZZLE_COUNT" && data.updateId == pendota.lastSizzleId) {
 				pendota.addToSizzleCount(parseInt(data.count));
 			}
 		}
@@ -294,14 +331,14 @@ if(!pendota._pendotaUIIsInjected) {
     * Randomizes a 5-digit ID for the sizzler update process.
     * @returns {int}	a random int, always 5 digits
     */
-	pendota.fiveDigitId = function() {
+	pendota.fiveDigitId = function () {
 		return Math.floor(Math.random() * 90000) + 10000;
 	}
 
     /*
     * Displays the tagging aid UI and turns on relevant listeners.
     */
-	pendota._pendotaInsertUI_ = function() {
+	pendota._pendotaInsertUI_ = function () {
 		//Injects the tag assistant UI
 		pendota._pendota_isVisible_ = true;
 		pendota._pendota_isLocked_ = false;
@@ -338,6 +375,7 @@ if(!pendota._pendotaUIIsInjected) {
 
 				// Points the image source for static images stored with extension
 				$("._pendota-copy-icon_").attr("src", pendota.copy_icon_url);
+				$("._pendota-addtobuild-icon_").attr("src", pendota.plus_sq_url);
 				$("#_pendota-target-img_").attr("src", pendota.pendo_target_url);
 
 				// Sets the onclick function for the parent tree traversal upwards
@@ -366,6 +404,7 @@ if(!pendota._pendotaUIIsInjected) {
 								);
 							}
 						}
+						console.log(pendota._pendota_elem_array_);
 					});
 
 				// Sets the onclick funtion for the parent tree traversal downwards
@@ -381,7 +420,7 @@ if(!pendota._pendotaUIIsInjected) {
 							pendota._pendota_elem_array_.pop();
 							childElem =
 								pendota._pendota_elem_array_[
-									pendota._pendota_elem_array_.length - 1
+								pendota._pendota_elem_array_.length - 1
 								];
 							pendota.updatePendotaContents(childElem);
 							//updateOutline(childElem["obj"]);
@@ -396,6 +435,7 @@ if(!pendota._pendotaUIIsInjected) {
 								);
 							}
 						}
+						console.log(pendota._pendota_elem_array_);
 					});
 
 				// prep the sizzler in an off state
@@ -407,6 +447,7 @@ if(!pendota._pendotaUIIsInjected) {
 
 				// Apply the copy function to all copy icons
 				pendota.applyCopyFunction();
+				pendota.applyAddFunction();
 
 				// Call highlight toggler when clicking enter
 				$("#_pendota-sizzler-form_").on("submit", function (e) {
@@ -420,7 +461,7 @@ if(!pendota._pendotaUIIsInjected) {
     /*
     * Removes the tagging aid UI and listeners.
     */
-	pendota._pendotaRemoveUI_ = function() {
+	pendota._pendotaRemoveUI_ = function () {
 		pendota._pendota_isVisible_ = false;
 
 		$("#_pendota-wrapper_").remove(); // Remove all html
