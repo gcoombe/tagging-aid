@@ -260,11 +260,15 @@ if (!pendota._pendotaUIIsInjected) {
 	* Accepts a tagBuild object as input and returns it in valid CSS selector syntax
 	* @param 	{object}	buildObj
 	* @returns	{string}	the build object in CSS syntax
+	* @returns	{string}	the build object with HTML wrappers in CSS syntax
 	*/
 	pendota.convertObjToTag = function(buildObj) {
 		var tagOut = ''
+		var htmlTagOut = document.createElement('div');
 		if (buildObj.hasOwnProperty("type")) {
 			tagOut = buildObj.type.value;
+			let tmpSpan = document.createElement('span');
+			tmpSpan
 		}
 		if (buildObj.hasOwnProperty("id")) {
 			tagOut += "#" + buildObj.id.value;
