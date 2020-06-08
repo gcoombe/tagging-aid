@@ -10,6 +10,7 @@
     --pendo-pink: #ec2059;
     --pendo-charcoal: #2f3641;
     --light-gray: #aaaaaa;
+    --light-pink: #f0ccd6;
 	background:none;
 	border:none;
     bottom:auto;
@@ -49,6 +50,10 @@
 #_pendota-wrapper_ {
     position: fixed;
     z-index: 99999999999;
+}
+
+#_pendota-wrapper_ ._pendota-hidden_ {
+    display: none;
 }
 
 #_pendota-wrapper_ ._pendota_container_ {
@@ -157,17 +162,47 @@
     height: 25px;
 }
 
-#_pendota-wrapper_ #_pendota-sizzler_ {
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin: 8px auto;
+#_pendota-wrapper_ #_pendota-tag-builder-table_ {
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 #_pendota-wrapper_ #_pendota-sizzler-count_ {
     font-size: 14px;
     color: #222222;
+    line-height: 24px;
     text-align: center;
+}
+
+#_pendota-wrapper_ #_pendota-tag-builder-table_ td {
+    vertical-align: top;
+}
+
+#_pendota-wrapper_ #_pendota-tag-builder_ {
+    border: 1px solid var(--pendo-teal);
+    border-radius: 4px;
+    min-height: 28px;
+}
+
+#_pendota-wrapper_ ._pendota-tag-elm_ {
+    background-color: var(--light-pink);
+    border-radius: 4px;
+    color: black;
+    display: inline-block;
+    font-size: 12px;
+    margin: 2px;
+    max-width: 220px;
+    overflow: hidden;
+    padding: 2px 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#_pendota-wrapper_ #_pendota-sizzler_ {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 8px auto;
 }
 
 #_pendota-wrapper_ #_pendota-sizzler-icon_ {
@@ -279,9 +314,4 @@
 #_pendota-wrapper_ ._pendota-addtobuild-icon_ {
     cursor: pointer;
     height: 20px;
-}
-
-#_pendota-wrapper_ #_pendota-button-fix_ {
-    padding-top: 8px;
-    padding-bottom: 11px;
 }

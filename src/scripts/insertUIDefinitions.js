@@ -9,6 +9,8 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.sizzlerInputId = "_pendota-sizzler_";
 	pendota.sizzlerBtnId = "_pendota-sizzler-icon_";
 	pendota.sizzlerCountId = "_pendota-sizzler-count_";
+	pendota.autoTagsId = "_pendota-auto-tags_";
+	pendota.tagItemClass = "_pendota-tag-item_";
 	pendota.copy_icon_url = chrome.extension.getURL("/src/ui/images/copy_icon.ico");
 	pendota.pendo_target_url = chrome.extension.getURL(
 		"/src/ui/images/pendo_target.png"
@@ -60,6 +62,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.lockSwitch = function (isLocked) {
 		// locks or unlocks the pendota element scanner
 		// var el = e.target;
+		pendota.clearAutoTag();
 		if (typeof isLocked !== "undefined") {
 			if (isLocked) pendota.lockedState();
 			else pendota.unlockedState();
@@ -159,23 +162,143 @@ if (!pendota._pendotaUIIsInjected) {
 		* @param {int}		tier
 		* @param {string}	attribute
 		* @param {string}	value
-		*/
+	*/
 	pendota.addToTagBuild = function (tier, attribute, value) {
-		var newVal = { "attribute": attribute, "value": value };
-		if (pendota.tagBuild.length == 0) {
-			pendota.tagBuild.push({ 'tier': tier, "items": [newVal] });
+		if (typeof(value) == "undefined" || value == "") return; //No empty values
+		if (['type', 'id'].includes(attribute)) {
+			var newVal = {'tier': tier, "items": []};
+			newVal[attribute] = {"value": value};
+			// single values (type, id)
+			if (pendota.tagBuild.length == 0) {
+				pendota.tagBuild.push(newVal);
+			} else {
+				for (var n = 0; n < pendota.tagBuild.length; n++) {
+					if(pendota.tagBuild[n].tier == tier) {
+						var obj = pendota.tagBuild[n];
+						if(typeof(obj[attribute]) == 'undefined' || obj[attribute].value != value) {
+							obj[attribute] = {"value": value};
+							console.log("Overwrote " + attribute);
+							break;
+						} else {
+							console.log('Duplicate ' + attribute);
+							break;
+						}
+					} else if (pendota.tagBuild[n].tier < tier) {
+						pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, newVal, n);
+						break;
+					} else if (n == pendota.tagBuild.length - 1) {
+						pendota.tagBuild.push(newVal);
+						break;
+					}
+				}
+			}
 		} else {
-			for (var i = 0; i < pendota.tagBuild.length; i++) {
-				if (pendota.tagBuild[i].tier == tier) {
-					pendota.tagBuild[i].items.push(newVal);
-					break;
-				} else if (pendota.tagBuild[i].tier < tier || i == pendota.tagBuild.length - 1) {
-					pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, { "tier": tier, "items": [newVal] }, i);
-					break;
+			// compounding values (class, custom attributes)
+			var newVal = { "attribute": attribute, "value": value };
+			if (pendota.tagBuild.length == 0) {
+				pendota.tagBuild.push({ 'tier': tier, "items": [newVal] });
+			} else {
+				for (var i = 0; i < pendota.tagBuild.length; i++) {
+					if (pendota.tagBuild[i].tier == tier) {
+						var itemsArr = pendota.tagBuild[i].items;
+						var isNew = true;
+						for (var j = 0; j < itemsArr.length; j++) {
+							if (itemsArr[j].attribute == attribute && itemsArr[j].value == value) {
+								// Duplicate class; don't overwrite
+								isNew = false;
+								console.log('Duplicate ' + attribute);
+								break;
+							}
+						}
+						if (isNew) pendota.tagBuild[i].items.push(newVal);
+						break;
+					} else if (pendota.tagBuild[i].tier < tier) {
+						pendota.tagBuild = pendota.injectIntoArray(pendota.tagBuild, { "tier": tier, "items": [newVal] }, i);
+						break;
+					} else if (i == pendota.tagBuild.length - 1) {
+						pendota.tagBuild.push({ 'tier': tier, "items": [newVal] });
+						break;
+					}
 				}
 			}
 		}
-		console.log('tagBuild', pendota.tagBuild);
+		pendota.updateAutoTag();
+	}
+
+	/*
+	* Checks the current tag build and updates the auto-built tag and free-text tag to reflect it
+	*/
+	pendota.updateAutoTag = function() {
+		console.log('tagBuild: ', pendota.tagBuild);
+		var fullTag = document.createElement('div');
+		var rawFullTag = "";
+		for (var o = 0; o < pendota.tagBuild.length; o++) {
+			var tmpSpan = document.createElement('span');
+			tmpSpan.classList.add("_pendota-tag-elm_");
+			tmpSpan.dataset.buildIndex = o;
+			var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
+			tmpSpan.title = nextElm;
+			tmpSpan.innerText = nextElm;
+			rawFullTag += " " + nextElm;
+			fullTag.append(tmpSpan);
+		}
+		document.getElementById(pendota.autoTagsId).innerHTML = fullTag.innerHTML;
+		pendota.changeSizzlerValue(rawFullTag);
+		console.log('fullTag: ', rawFullTag);
+	}
+
+	/*
+	* Clears the existing auto-built tag and updates the displayed values
+	*/
+	pendota.clearAutoTag = function() {
+		pendota.tagBuild = [];
+		document.getElementById(pendota.autoTagsId).innerHTML = "";
+		pendota.changeSizzlerValue(" ");
+	}
+
+	/*
+	* Accepts a tagBuild object as input and returns it in valid CSS selector syntax
+	* @param 	{object}	buildObj
+	* @returns	{string}	the build object in CSS syntax
+	*/
+	pendota.convertObjToTag = function(buildObj) {
+		var tagOut = ''
+		if (buildObj.hasOwnProperty("type")) {
+			tagOut = buildObj.type.value;
+		}
+		if (buildObj.hasOwnProperty("id")) {
+			tagOut += "#" + buildObj.id.value;
+		}
+		if (buildObj.hasOwnProperty("items")) {
+			itemArr = buildObj.items;
+			for (var i = 0; i < itemArr.length; i++) {
+				item = itemArr[i];
+				if (typeof(item.rule) == "undefined" && item.attribute == "class") {
+					// item is a class with no modifying rules
+					tagOut += "." + item.value;
+				} else if(typeof(item.rule) != "undefined") {
+					// item has a modifying rule (class or otherwise)
+					rule = item.rule
+					switch(rule.type) {
+						case "beginsWith":
+							tagOut += "[" + item.attribute + "^=\"" + rule.value + "\"]";
+							break;
+						case "endsWith":
+							tagOut += "[" + item.attribute + "$=\"" + rule.value + "\"]";
+							break;
+						case "contains":
+							tagOut += "[" + item.attribute + "*=\"" + rule.value + "\"]";
+							break;
+						default:
+							tagOut += "[" + item.attribute + "=\"" + item.value + "\"]";
+					} 
+				} else {
+					// item is not a class and has no modifying rules
+					tagOut += "[" + item.attribute + "=\"" + item.value + "\"]";
+				}
+			}
+		}
+		return tagOut;
 	}
 
 	/*
@@ -185,7 +308,7 @@ if (!pendota._pendotaUIIsInjected) {
 	* @param {index} int
 	*/
 	pendota.injectIntoArray = function (inArray, value, index) {
-		return inArray.slice(0, index - 1).concat(value).concat(inArray.slice(index));
+		return inArray.slice(0, index).concat(value).concat(inArray.slice(index));
 	}
 
 	/*
@@ -196,7 +319,6 @@ if (!pendota._pendotaUIIsInjected) {
 		e.stopPropagation();
 		e.preventDefault();
 		inp = document.getElementById(e.currentTarget.dataset.id);
-		console.log(inp);
 		pendota.addToTagBuild(pendota._pendota_elem_array_.length - 1, inp.dataset.attr, inp.dataset.rawvalue);
 	};
 
@@ -224,10 +346,13 @@ if (!pendota._pendotaUIIsInjected) {
 		// Set the result boxes that are always visible
 		$("#_pendota_type-result_").attr("value", "" + _elemType_);
 		$("#_pendota_type-result_").attr("data-rawvalue", _elemType_);
+		$('#_pendota_type-result_').attr("title", "" + _elemType_);
 		$("#_pendota_id-result_").attr("value", "#" + _id_);
 		$("#_pendota_id-result_").attr("data-rawvalue", _id_);
+		$('#_pendota_id-result_').attr("title", "#" + _id_);
 		$("#_pendota_class-result-0_").attr("value", "." + _classNames_[0]);
 		$("#_pendota_class-result-0_").attr("data-rawvalue", _classNames_[0]);
+		$('#_pendota_class-result-0_').attr("title", "" + _classNames_[0]);
 		$("#_pendota_template-table_").empty();
 
 		// Build extra class spaces
@@ -238,18 +363,18 @@ if (!pendota._pendotaUIIsInjected) {
 				'<td width="82%" class="_pendota_input-row_"><input no-drag class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
 				i +
 				'_"  data-attr="class" data-rawvalue="' + _classNames_[i] + '" value=".' +
-				_classNames_[i] +
+				_classNames_[i] + '" title=".' + _classNames_[i] +
 				'" readonly></td>' +
 				'<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
 				'<td width="8%" class="_pendota_input-row_">' +
-				'<div data-id="_pendota_class-result-' + i + '_" class="_pendota-addtobuild-btn_">' +
-				'<a href="#"><img class="_pendota-addtobuild-icon_" src=' + pendota.plus_sq_url + '></a>' +
+				'<div data-id="_pendota_class-result-' + i + '_" class="_pendota-addtobuild-btn_"  title="Add to tag">' +
+				'<a href="#"><img class="_pendota-addtobuild-icon_" src=' + pendota.plus_sq_url + ' ></a>' +
 				'</div>' +
 				'</td>' +
 				'<td width="8%" class="_pendota_input-row_">' +
 				'<div data-id="_pendota_class-result-' +
 				i +
-				'_" class="_pendota-copy-link_");\'>' +
+				'_" class="_pendota-copy-link_" title="Copy value">' +
 				'<a href="#"><img class=_pendota-copy-icon_ src=' +
 				pendota.copy_icon_url +
 				'> </a>' +
@@ -294,6 +419,25 @@ if (!pendota._pendotaUIIsInjected) {
 		document.getElementById(pendota.sizzlerBtnId).removeEventListener("click", pendota._pendotaDeactivateSizzler);
 		document.getElementById(pendota.sizzlerBtnId).addEventListener("click", pendota._pendotaActivateSizzler);
 		window.removeEventListener("message", pendota.sizzlerCountSignalListener, true);
+	}
+
+	/*
+	* Changes the sizzler input value and triggers an input change
+	* @param {string} newValue
+	*/
+	pendota.changeSizzlerValue = function(newValue) {
+		var inpEvent = new Event('input', {
+			bubbles: true,
+			cancelable: true,
+		});
+		var chgEvent = new Event('change', {
+			bubbles: true,
+			cancelable: true,
+		});
+		var sizzlerInput = document.getElementById(pendota.sizzlerInputId);
+		sizzlerInput.value = newValue;
+		sizzlerInput.dispatchEvent(inpEvent);
+		sizzlerInput.dispatchEvent(chgEvent);
 	}
 
     /*
@@ -404,7 +548,6 @@ if (!pendota._pendotaUIIsInjected) {
 								);
 							}
 						}
-						console.log(pendota._pendota_elem_array_);
 					});
 
 				// Sets the onclick funtion for the parent tree traversal downwards
@@ -435,7 +578,6 @@ if (!pendota._pendotaUIIsInjected) {
 								);
 							}
 						}
-						console.log(pendota._pendota_elem_array_);
 					});
 
 				// prep the sizzler in an off state
