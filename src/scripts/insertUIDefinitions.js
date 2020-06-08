@@ -10,7 +10,9 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.sizzlerBtnId = "_pendota-sizzler-icon_";
 	pendota.sizzlerCountId = "_pendota-sizzler-count_";
 	pendota.autoTagsId = "_pendota-auto-tags_";
+	pendota.tagElmClass = "_pendota-tag-elm_";
 	pendota.tagItemClass = "_pendota-tag-item_";
+	pendota.tagItemTextClass = "_pendota-tag-item-text_";
 	pendota.copy_icon_url = chrome.extension.getURL("/src/ui/images/copy_icon.ico");
 	pendota.pendo_target_url = chrome.extension.getURL(
 		"/src/ui/images/pendo_target.png"
@@ -226,6 +228,32 @@ if (!pendota._pendotaUIIsInjected) {
 	}
 
 	/*
+	* Accepts descriptors of an element in the tag build and injects the provided rule
+	*/
+	pendota.setTagBuildRule = function(objectIndex, isType, isId, itemIndex, rule) {
+		if (isType) {
+			pendota.tagBuild[objectIndex].type.rule = rule;
+		} else if (isId) {
+			pendota.tagBuild[objectIndex].id.rule = rule;
+		} else {
+			pendota.tagBuild[objectIndex].items[itemIndex].rule = rule;
+		}
+	}
+
+	/*
+	* Accepts descriptors of an element in the tag build and returns the requested rule
+	*/
+	pendota.getTagBuildRule = function(objectIndex, isType, isId, itemIndex) {
+		if (isType) {
+			return pendota.tagBuild[objectIndex].type.rule;
+		} else if (isId) {
+			return pendota.tagBuild[objectIndex].id.rule;
+		} else {
+			return pendota.tagBuild[objectIndex].items[itemIndex].rule;
+		}
+	}
+
+	/*
 	* Checks the current tag build and updates the auto-built tag and free-text tag to reflect it
 	*/
 	pendota.updateAutoTag = function() {
@@ -237,13 +265,39 @@ if (!pendota._pendotaUIIsInjected) {
 			tmpSpan.classList.add("_pendota-tag-elm_");
 			tmpSpan.dataset.buildIndex = o;
 			var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
-			tmpSpan.title = nextElm;
-			tmpSpan.innerText = nextElm;
-			rawFullTag += " " + nextElm;
+			tmpSpan.title = nextElm["tagOut"];
+			tmpSpan.innerHTML = nextElm["htmlTagOut"];
+			rawFullTag += " " + nextElm["tagOut"];
 			fullTag.append(tmpSpan);
 		}
 		document.getElementById(pendota.autoTagsId).innerHTML = fullTag.innerHTML;
 		pendota.changeSizzlerValue(rawFullTag);
+		$('.' + pendota.tagItemTextClass).on('click', function(e) {
+			text = e.target;
+			elm = $(e.target).closest('.' + pendota.tagElmClass)[0];
+			item = $(e.target).closest('.' + pendota.tagItemClass)[0];
+			var isId = false, isType = false;
+ 			if ("isId" in item.dataset) isId = true;
+			if ("isType" in item.dataset) isType = true;
+			console.log(item.dataset);
+			console.log('elm: ', elm);
+			console.log('item: ', item);
+			var objectIndex = elm.dataset.buildIndex;
+			var itemIndex = item.dataset.itemIndex;
+			console.log('objectIndex: ', objectIndex);
+			console.log('itemIndex: ', itemIndex);
+			console.log('isType: ', isType);
+			console.log('isId: ', isId);
+			if (typeof(pendota.getTagBuildRule(objectIndex, isType, isId, itemIndex)) == "undefined") 
+			{
+				pendota.setTagBuildRule(objectIndex, isType, isId, itemIndex, {type: "contains", value: text.dataset.rawValue.slice(0,3)});
+			} else {
+				pendota.setTagBuildRule(objectIndex, isType, isId, itemIndex);
+			}
+
+			
+			pendota.updateAutoTag();
+		})
 		console.log('fullTag: ', rawFullTag);
 	}
 
@@ -266,43 +320,100 @@ if (!pendota._pendotaUIIsInjected) {
 		var tagOut = ''
 		var htmlTagOut = document.createElement('div');
 		if (buildObj.hasOwnProperty("type")) {
-			tagOut = buildObj.type.value;
+			typeString = pendota.createCSSRule("type", buildObj.type.value, buildObj.type.rule);
+			tagOut += typeString;
 			let tmpSpan = document.createElement('span');
-			tmpSpan
+			tmpSpan.classList.add(pendota.tagItemClass);
+			tmpSpan.dataset.isType = "";
+			let tmpTextSpan = document.createElement('span');
+			tmpTextSpan.classList.add("_pendota-tag-item-text_");
+			tmpTextSpan.innerText = typeString;
+			tmpTextSpan.title = typeString;
+			tmpTextSpan.dataset.rawValue = buildObj.type.value;
+			tmpSpan.append(tmpTextSpan);
+			htmlTagOut.append(tmpSpan);
 		}
 		if (buildObj.hasOwnProperty("id")) {
-			tagOut += "#" + buildObj.id.value;
+			let idString = pendota.createCSSRule("id", buildObj.id.value, buildObj.id.rule);
+			tagOut += idString;
+			let tmpSpan = document.createElement('span');
+			tmpSpan.classList.add(pendota.tagItemClass);
+			tmpSpan.dataset.isId = "";
+			let tmpTextSpan = document.createElement('span');
+			tmpTextSpan.classList.add("_pendota-tag-item-text_");
+			tmpTextSpan.innerText = idString;
+			tmpTextSpan.title = idString;
+			tmpTextSpan.dataset.rawValue = buildObj.id.value;
+			tmpSpan.append(tmpTextSpan);
+			htmlTagOut.append(tmpSpan);
 		}
 		if (buildObj.hasOwnProperty("items")) {
 			itemArr = buildObj.items;
 			for (var i = 0; i < itemArr.length; i++) {
-				item = itemArr[i];
-				if (typeof(item.rule) == "undefined" && item.attribute == "class") {
-					// item is a class with no modifying rules
-					tagOut += "." + item.value;
-				} else if(typeof(item.rule) != "undefined") {
-					// item has a modifying rule (class or otherwise)
-					rule = item.rule
-					switch(rule.type) {
-						case "beginsWith":
-							tagOut += "[" + item.attribute + "^=\"" + rule.value + "\"]";
-							break;
-						case "endsWith":
-							tagOut += "[" + item.attribute + "$=\"" + rule.value + "\"]";
-							break;
-						case "contains":
-							tagOut += "[" + item.attribute + "*=\"" + rule.value + "\"]";
-							break;
-						default:
-							tagOut += "[" + item.attribute + "=\"" + item.value + "\"]";
-					} 
-				} else {
-					// item is not a class and has no modifying rules
-					tagOut += "[" + item.attribute + "=\"" + item.value + "\"]";
-				}
+				var tmpSpan = document.createElement('span');
+				tmpSpan.classList.add(pendota.tagItemClass);
+				tmpSpan.dataset.itemIndex = i;
+				let item = itemArr[i];
+				let addStr = pendota.createCSSRule(item.attribute, item.value, item.rule);
+				tagOut += addStr;
+				let tmpTextSpan = document.createElement('span');
+				tmpTextSpan.classList.add("_pendota-tag-item-text_");
+				tmpTextSpan.innerText = addStr;
+				tmpTextSpan.title = addStr;
+				tmpTextSpan.dataset.rawValue = item.value;
+				tmpSpan.append(tmpTextSpan);
+				htmlTagOut.append(tmpSpan);
 			}
 		}
-		return tagOut;
+		return {"tagOut": tagOut, "htmlTagOut": htmlTagOut.innerHTML};
+	}
+
+	/*
+	* Generates a valid CSS attribute rule from a tagBuild item
+	* @param {object} item 
+	*/
+	pendota.createCSSRule = function (attribute, itemValue, rule) {
+		var outStr = '';
+		if (attribute == "type") {
+			// item is an element type
+			outStr = itemValue;
+		} else if (typeof(rule) == "undefined" && attribute == "class") {
+			// item is a class with no modifying rules
+			outStr = "." + itemValue;
+		} else if (typeof(rule) == "undefined" && attribute == "id") { 
+			// item is an id with no modifying rules
+			outStr = "#" + itemValue;
+		} else if(typeof(rule) != "undefined" && attribute == "class") {
+			// begin and ends with rules on classes are tricky; better not to allow them
+			switch(rule.type) {
+				case "contains":
+					outStr = "[" + attribute + "*=\"" + rule.value + "\"]";
+					break;
+				default:
+					// rule type not recognized, default to equals
+					outStr = "[" + attribute + "=\"" + itemValue + "\"]";
+			} 
+		} else if(typeof(rule) != "undefined") {
+			// item has a modifying rule and is not a class, type, or id
+			switch(rule.type) {
+				case "beginsWith":
+					outStr = "[" + attribute + "^=\"" + rule.value + "\"]";
+					break;
+				case "endsWith":
+					outStr = "[" + attribute + "$=\"" + rule.value + "\"]";
+					break;
+				case "contains":
+					outStr = "[" + attribute + "*=\"" + rule.value + "\"]";
+					break;
+				default:
+					// rule type not recognized, default to equals
+					outStr = "[" + attribute + "=\"" + itemValue + "\"]";
+			} 
+		} else {
+			// item is not a type/class/id and has no modifying rules
+			outStr = "[" + attribute + "=\"" + itemValue + "\"]";
+		}
+		return outStr;
 	}
 
 	/*
