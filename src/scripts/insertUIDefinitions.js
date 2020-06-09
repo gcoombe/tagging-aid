@@ -6,6 +6,8 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendota_elem_array_ = [];
 
 	// Reused variables
+	pendota.hiddenClass = "_pendota-hidden_";
+	pendota.ddShowClass = "_pendota-dropdown-show_";
 	pendota.sizzlerInputId = "_pendota-sizzler_";
 	pendota.sizzlerBtnId = "_pendota-sizzler-icon_";
 	pendota.sizzlerCountId = "_pendota-sizzler-count_";
@@ -13,6 +15,8 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagElmClass = "_pendota-tag-elm_";
 	pendota.tagItemClass = "_pendota-tag-item_";
 	pendota.tagItemTextClass = "_pendota-tag-item-text_";
+	pendota.tagItemDdClass = "_pendota-tag-item-dropdown_";
+	pendota.tagItemDdItemClass = "_pendota-tag-item-dd-item_";
 	pendota.copy_icon_url = chrome.extension.getURL("/src/ui/images/copy_icon.ico");
 	pendota.pendo_target_url = chrome.extension.getURL(
 		"/src/ui/images/pendo_target.png"
@@ -227,6 +231,45 @@ if (!pendota._pendotaUIIsInjected) {
 		pendota.updateAutoTag();
 	}
 
+
+	/*
+	* Removes an item from the tag build
+	*/
+	pendota.removeFromTagBuild = function(objectIndex, isType, isId, itemIndex) {
+		if (isType) {
+			delete pendota.tagBuild[objectIndex].type;
+		} else if (isId) {
+			delete pendota.tagBuild[objectIndex].id;
+		} else {
+			pendota.tagBuild[objectIndex].items.splice(itemIndex, 1);
+		}
+		pendota.updateAutoTag();
+	}
+
+	/*
+	* When passed an event, removes a tag item from the build if found in parent tree
+	* @param {event} e
+	*/
+	pendota.removeFromTagBuildListener = function(e) {
+		console.log('Deletion executed.');
+		if (typeof(e) !== "undefined") {
+			tgt = e.target;
+			if (tgt.closest('.' + pendota.tagItemClass)) {
+				item = tgt.closest('.' + pendota.tagItemClass);
+				elm = tgt.closest('.' + pendota.tagElmClass);
+				console.log ('item dataset: ', item.dataset);
+				objIndex = elm.dataset.buildIndex;
+				if ("isType" in item.dataset) {
+					pendota.removeFromTagBuild(objIndex, true);
+				} else if ("isId" in item.dataset) {
+					pendota.removeFromTagBuild(objIndex, false, true);
+				} else {
+					pendota.removeFromTagBuild(objIndex, false, false, item.dataset.itemIndex);
+				}
+			}
+		}
+	}
+
 	/*
 	* Accepts descriptors of an element in the tag build and injects the provided rule
 	*/
@@ -237,6 +280,29 @@ if (!pendota._pendotaUIIsInjected) {
 			pendota.tagBuild[objectIndex].id.rule = rule;
 		} else {
 			pendota.tagBuild[objectIndex].items[itemIndex].rule = rule;
+		}
+		pendota.updateAutoTag();
+	}
+
+	/*
+	* When passed an event, resets a tag item to default from the build if found in parent tree
+	*/
+	pendota.resetTagItemListener = function(e) {
+		console.log('Reset executed.');
+		if (typeof(e) !== "undefined") {
+			tgt = e.target;
+			if (tgt.closest('.' + pendota.tagItemClass)) {
+				item = tgt.closest('.' + pendota.tagItemClass);
+				elm = tgt.closest('.' + pendota.tagElmClass);
+				objIndex = elm.dataset.buildIndex;
+				if ("isType" in item.dataset) {
+					pendota.setTagBuildRule(objIndex, true);
+				} else if ("isId" in item.dataset) {
+					pendota.setTagBuildRule(objIndex, false, true);
+				} else {
+					pendota.setTagBuildRule(objIndex, false, false, item.dataset.itemIndex);
+				}
+			}
 		}
 	}
 
@@ -261,42 +327,19 @@ if (!pendota._pendotaUIIsInjected) {
 		var fullTag = document.createElement('div');
 		var rawFullTag = "";
 		for (var o = 0; o < pendota.tagBuild.length; o++) {
-			var tmpSpan = document.createElement('span');
+			var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
+			var tmpSpan = nextElm["htmlTagOut"];
 			tmpSpan.classList.add("_pendota-tag-elm_");
 			tmpSpan.dataset.buildIndex = o;
-			var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
 			tmpSpan.title = nextElm["tagOut"];
-			tmpSpan.innerHTML = nextElm["htmlTagOut"];
 			rawFullTag += " " + nextElm["tagOut"];
-			fullTag.append(tmpSpan);
+			fullTag.appendChild(tmpSpan);
 		}
-		document.getElementById(pendota.autoTagsId).innerHTML = fullTag.innerHTML;
+		document.getElementById(pendota.autoTagsId).innerHTML = "";
+		document.getElementById(pendota.autoTagsId).appendChild(fullTag);
 		pendota.changeSizzlerValue(rawFullTag);
 		$('.' + pendota.tagItemTextClass).on('click', function(e) {
-			text = e.target;
-			elm = $(e.target).closest('.' + pendota.tagElmClass)[0];
-			item = $(e.target).closest('.' + pendota.tagItemClass)[0];
-			var isId = false, isType = false;
- 			if ("isId" in item.dataset) isId = true;
-			if ("isType" in item.dataset) isType = true;
-			console.log(item.dataset);
-			console.log('elm: ', elm);
-			console.log('item: ', item);
-			var objectIndex = elm.dataset.buildIndex;
-			var itemIndex = item.dataset.itemIndex;
-			console.log('objectIndex: ', objectIndex);
-			console.log('itemIndex: ', itemIndex);
-			console.log('isType: ', isType);
-			console.log('isId: ', isId);
-			if (typeof(pendota.getTagBuildRule(objectIndex, isType, isId, itemIndex)) == "undefined") 
-			{
-				pendota.setTagBuildRule(objectIndex, isType, isId, itemIndex, {type: "contains", value: text.dataset.rawValue.slice(0,3)});
-			} else {
-				pendota.setTagBuildRule(objectIndex, isType, isId, itemIndex);
-			}
-
-			
-			pendota.updateAutoTag();
+			pendota.displayTagItemDropdown(e.target.closest('.' + pendota.tagItemClass));
 		})
 		console.log('fullTag: ', rawFullTag);
 	}
@@ -318,54 +361,92 @@ if (!pendota._pendotaUIIsInjected) {
 	*/
 	pendota.convertObjToTag = function(buildObj) {
 		var tagOut = ''
-		var htmlTagOut = document.createElement('div');
-		if (buildObj.hasOwnProperty("type")) {
-			typeString = pendota.createCSSRule("type", buildObj.type.value, buildObj.type.rule);
-			tagOut += typeString;
+		var htmlTagOut = document.createElement('span');
+
+		var repeatSteps = function(attr, val, rule) {
+			addStr = pendota.createCSSRule(attr, val, rule);
+			tagOut += addStr;
 			let tmpSpan = document.createElement('span');
 			tmpSpan.classList.add(pendota.tagItemClass);
-			tmpSpan.dataset.isType = "";
 			let tmpTextSpan = document.createElement('span');
-			tmpTextSpan.classList.add("_pendota-tag-item-text_");
-			tmpTextSpan.innerText = typeString;
-			tmpTextSpan.title = typeString;
-			tmpTextSpan.dataset.rawValue = buildObj.type.value;
+			tmpTextSpan.classList.add(pendota.tagItemTextClass);
+			tmpTextSpan.innerText = addStr;
+			tmpTextSpan.title = addStr;
+			tmpTextSpan.dataset.rawValue = val;
 			tmpSpan.append(tmpTextSpan);
+			tmpSpan.appendChild(pendota.createTagItemDropdown(attr));
 			htmlTagOut.append(tmpSpan);
+			return tmpSpan;
+		}
+
+		if (buildObj.hasOwnProperty("type")) {
+			let typeSpan = repeatSteps("type", buildObj.type.value, buildObj.type.rule);
+			typeSpan.dataset.isType = "";
 		}
 		if (buildObj.hasOwnProperty("id")) {
-			let idString = pendota.createCSSRule("id", buildObj.id.value, buildObj.id.rule);
-			tagOut += idString;
-			let tmpSpan = document.createElement('span');
-			tmpSpan.classList.add(pendota.tagItemClass);
-			tmpSpan.dataset.isId = "";
-			let tmpTextSpan = document.createElement('span');
-			tmpTextSpan.classList.add("_pendota-tag-item-text_");
-			tmpTextSpan.innerText = idString;
-			tmpTextSpan.title = idString;
-			tmpTextSpan.dataset.rawValue = buildObj.id.value;
-			tmpSpan.append(tmpTextSpan);
-			htmlTagOut.append(tmpSpan);
+			let idSpan = repeatSteps("id", buildObj.id.value, buildObj.id.rule);
+			idSpan.dataset.isId = "";
 		}
 		if (buildObj.hasOwnProperty("items")) {
 			itemArr = buildObj.items;
 			for (var i = 0; i < itemArr.length; i++) {
-				var tmpSpan = document.createElement('span');
-				tmpSpan.classList.add(pendota.tagItemClass);
-				tmpSpan.dataset.itemIndex = i;
 				let item = itemArr[i];
-				let addStr = pendota.createCSSRule(item.attribute, item.value, item.rule);
-				tagOut += addStr;
-				let tmpTextSpan = document.createElement('span');
-				tmpTextSpan.classList.add("_pendota-tag-item-text_");
-				tmpTextSpan.innerText = addStr;
-				tmpTextSpan.title = addStr;
-				tmpTextSpan.dataset.rawValue = item.value;
-				tmpSpan.append(tmpTextSpan);
-				htmlTagOut.append(tmpSpan);
+				let itemSpan = repeatSteps(item.attribute, item.value, item.rule);
+				itemSpan.dataset.itemIndex = i;
 			}
 		}
-		return {"tagOut": tagOut, "htmlTagOut": htmlTagOut.innerHTML};
+		return {"tagOut": tagOut, "htmlTagOut": htmlTagOut};
+	}
+
+	/*
+	* Generates a dropdown menu for different attribute types
+	* @param {string} attribute
+	*/
+	pendota.createTagItemDropdown = function(attribute) {
+		var ddContent = document.createElement('div');
+		ddContent.classList.add(pendota.tagItemDdClass);
+
+		var addDdItem = function(text) {
+			var ddItem = document.createElement('a');
+			ddItem.classList.add(pendota.tagItemDdItemClass)
+			ddItem.innerText = text;
+			ddContent.append(ddItem);
+			return ddItem;
+		}
+
+		// Reset button
+		var resetBtn = addDdItem("Reset");
+		resetBtn.addEventListener("click", pendota.resetTagItemListener);
+		
+		// Delete button
+		var deleteBtn = addDdItem("Delete");
+		deleteBtn.addEventListener("click", pendota.removeFromTagBuildListener);
+
+		return ddContent;
+	}
+
+	/*
+	* Displays the dropdown under a specific tag item
+	* @param {node} elm
+	*/
+	pendota.displayTagItemDropdown = function(elm) {
+		pendota.hideTagItemDropdowns();
+		var ddContent = elm.querySelector('.' + pendota.tagItemDdClass);
+		ddContent.classList.add(pendota.ddShowClass);
+	}
+
+	/*
+	* Hides all open tag item dropdowns
+	* @param {event} e
+	*/
+	pendota.hideTagItemDropdowns = function(e) {
+		if (e) tgt = e.target;
+		if (typeof(e == "undefined") || !tgt.closest('.' + pendota.tagItemClass)) {
+			var dropdowns = document.getElementsByClassName(pendota.tagItemDdClass);
+			for (var i = 0; i < dropdowns.length; i++) {
+				dropdowns[i].classList.remove(pendota.ddShowClass);
+			}
+		}
 	}
 
 	/*
@@ -394,7 +475,7 @@ if (!pendota._pendotaUIIsInjected) {
 					outStr = "[" + attribute + "=\"" + itemValue + "\"]";
 			} 
 		} else if(typeof(rule) != "undefined") {
-			// item has a modifying rule and is not a class, type, or id
+			// item has a modifying rule and is not a class or type
 			switch(rule.type) {
 				case "beginsWith":
 					outStr = "[" + attribute + "^=\"" + rule.value + "\"]";
@@ -608,6 +689,9 @@ if (!pendota._pendotaUIIsInjected) {
 		// add listener for update signal
 		window.addEventListener("message", pendota.updateSignalListener, true);
 
+		// add listener to close dropdowns
+		window.addEventListener("click", pendota.hideTagItemDropdowns, true);
+
 		// Append popup div to the body
 		$.get(chrome.extension.getURL("src/ui/pendota.html"))
 			.then((data) => {
@@ -721,10 +805,11 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendotaRemoveUI_ = function () {
 		pendota._pendota_isVisible_ = false;
 
-		$("#_pendota-wrapper_").remove(); // Remove all html
+		$("._pendota-wrapper_").remove(); // Remove all html
 
 		// Remove listeners
 		window.removeEventListener("message", pendota.lockSignalListener, true);
 		window.removeEventListener("message", pendota.updateSignalListener, true);
+		window.removeEventListener("click", penodta.hideTagItemDropdowns, true);
 	}
 }
