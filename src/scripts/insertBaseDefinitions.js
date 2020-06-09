@@ -236,7 +236,20 @@ if (!pendota._pendotaIsInjected) {
 			outElm.nodeName = element.nodeName;
 			outElm.id = element.id;
 			outElm.classes = pendota.jqClassToArr($(element).attr("class"));
+			attrs = element.attributes;
+			outElm.attributes = [];
+			if (!!attrs) {
+				for (var i = 0; i < attrs.length; i++) {
+					if (!["class", "id", "style"].includes(attrs[i].nodeName)) {
+						outElm.attributes.push({"attribute": attrs[i].nodeName, "value": attrs[i].value})
+					}
+				}
+			}
+			outElm.textContent = element.textContent;
 			outElm.parentNode = pendota.passableObject(element.parentNode);
+			 if (!!outElm.parentNode) {
+				delete outElm.parentNode.textContent;
+			} 
 		}
 		return outElm;
 	}

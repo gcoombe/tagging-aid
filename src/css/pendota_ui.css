@@ -253,13 +253,37 @@
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-item_ {
+    background-color: white;
     color: black;
-    padding: 4px 8px;
+    line-height: 32px;
+    padding-left: 8px;
+    padding-right: 14px;
     text-decoration: none;
     display: block;
     overflow: visible;
     position: relative;
     white-space: nowrap;
+}
+
+._pendota-wrapper_ ._pendota-tag-item-dd-item_:hover {
+    background-color: #f1f1f1;
+    color: black;
+    padding-left: 8px;
+    padding-right: 14px;
+    text-decoration: none;
+    display: block;
+}
+
+._pendota-wrapper_ ._pendota-tag-item-dd-item_._pendota-has-side-input_:after {
+    content: '';
+    width: 0; 
+    height: 0; 
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 4px solid black;
+    position: absolute;
+    right: 4px;
+    top: 12px;
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-item_:first-child {
@@ -274,35 +298,29 @@
     border-radius: 4px;
 } 
 
-._pendota-wrapper_ ._pendota-tag-item-dd-item_:hover {
-    background-color: #f1f1f1;
-    color: black;
-    padding: 4px 8px;
-    text-decoration: none;
-    display: block;
-}
-
 ._pendota-wrapper_ ._pendota-tag-item-dd-inp-div_ {
-    background-color: white;
+    background-color: inherit;
     border-top: 1px solid var(--light-gray);
     border-right: 1px solid var(--light-gray);
     border-bottom: 1px solid var(--light-gray);
     border-radius: 0 4px 4px 0;
     display: none;
     position: absolute;
-    left: 99%;
+    left: 100%;
     min-width: 100px;
-    top: -4px;
+    top: -1px;
     white-space: nowrap;
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-inp_ {
     background-color: white;
+    border: 1px solid var(--pendo-charcoal);
     border-radius: 4px;
     display: inline-block;
+    height: 24px;
     min-width: 40px;
-    margin: 6px;
-    padding: 2px 4px;
+    margin: 4px;
+    padding: 6px 4px;
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-inp-submit_ {

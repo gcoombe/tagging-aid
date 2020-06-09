@@ -21,6 +21,11 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagItemDdInpDivClass = "_pendota-tag-item-dd-inp-div_";
 	pendota.tagItemDdInpClass = "_pendota-tag-item-dd-inp_";
 	pendota.tagItemDdInpSubmitClass = "_pendota-tag-item-dd-inp-submit_";
+	pendota.uiTypeTableId = "_pendota_type-table_";
+	pendota.uiIdTableId = "_pendota_id-table_";
+	pendota.uiClassTableId = "_pendota_class-table_";
+	pendota.uiAttrTableId = "_pendota_id-table_";
+	pendota.uiItemInputClass = "_pendota_form-control_";
 	pendota.copy_icon_url = chrome.extension.getURL(
 		"/src/ui/images/copy_icon.ico"
 	);
@@ -263,13 +268,12 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.removeFromTagBuild = function (
 		objectIndex,
-		isType,
-		isId,
+		spcItem,
 		itemIndex
 	) {
-		if (isType) {
+		if (spcItem === "type") {
 			delete pendota.tagBuild[objectIndex].type;
-		} else if (isId) {
+		} else if (spcItem === "id") {
 			delete pendota.tagBuild[objectIndex].id;
 		} else {
 			pendota.tagBuild[objectIndex].items.splice(itemIndex, 1);
@@ -300,14 +304,13 @@ if (!pendota._pendotaUIIsInjected) {
 				console.log("item dataset: ", item.dataset);
 				objIndex = elm.dataset.buildIndex;
 				if ("isType" in item.dataset) {
-					pendota.removeFromTagBuild(objIndex, true);
+					pendota.removeFromTagBuild(objIndex, "type");
 				} else if ("isId" in item.dataset) {
-					pendota.removeFromTagBuild(objIndex, false, true);
+					pendota.removeFromTagBuild(objIndex, "id");
 				} else {
 					pendota.removeFromTagBuild(
 						objIndex,
-						false,
-						false,
+						'',
 						item.dataset.itemIndex
 					);
 				}
@@ -320,14 +323,13 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.setTagBuildRule = function (
 		objectIndex,
-		isType,
-		isId,
+		spcItem,
 		itemIndex,
 		rule
 	) {
-		if (isType) {
+		if (spcItem === "type") {
 			pendota.tagBuild[objectIndex].type.rule = rule;
-		} else if (isId) {
+		} else if (spcItem === "id") {
 			pendota.tagBuild[objectIndex].id.rule = rule;
 		} else {
 			pendota.tagBuild[objectIndex].items[itemIndex].rule = rule;
@@ -342,9 +344,9 @@ if (!pendota._pendotaUIIsInjected) {
 			var objInd = elm.dataset.buildIndex;
 			var itemInd = item.dataset.itemIndex;
 			var isType = false, isId = false;
-			if ("isType" in item.dataset) isType = true;
-			if  ("isId" in item.dataset) isId = true;
-			pendota.setTagBuildRule(objInd, isType, isId, itemInd, rule);
+			if ("isType" in item.dataset) pendota.setTagBuildRule(objInd, "type", itemInd, rule);
+			else if  ("isId" in item.dataset) pendota.setTagBuildRule(objInd, "type", itemInd, rule);
+			else pendota.setTagBuildRule(objInd, '', itemInd, rule);
 		}
 	}
 
@@ -449,10 +451,12 @@ if (!pendota._pendotaUIIsInjected) {
 			);
 			typeSpan.dataset.isType = "";
 		}
+
 		if (buildObj.hasOwnProperty("id")) {
 			let idSpan = repeatSteps("id", buildObj.id.value, buildObj.id.rule);
 			idSpan.dataset.isId = "";
 		}
+
 		if (buildObj.hasOwnProperty("items")) {
 			itemArr = buildObj.items;
 			for (var i = 0; i < itemArr.length; i++) {
@@ -465,6 +469,7 @@ if (!pendota._pendotaUIIsInjected) {
 				itemSpan.dataset.itemIndex = i;
 			}
 		}
+
 		return { tagOut: tagOut, htmlTagOut: htmlTagOut };
 	};
 
@@ -484,10 +489,10 @@ if (!pendota._pendotaUIIsInjected) {
 			return ddItem;
 		};
 
-		var addDdItemInput = function (anchorItem) {
+		var addDdItemInput = function (anchorItem, useRawVal = true) {
 			var inpDiv = document.createElement("div");
 			inpDiv.classList.add(pendota.tagItemDdInpDivClass);
-			inpDiv.setAttribute("onsubmit", "return false");
+			if (useRawVal) inpDiv.dataset.useRawVal = "";
 			var inp = document.createElement("input");
 			inp.classList.add(pendota.tagItemDdInpClass);
 			var inpSubmit = document.createElement("button");
@@ -501,20 +506,22 @@ if (!pendota._pendotaUIIsInjected) {
 			inpDiv.appendChild(inp);
 			inpDiv.appendChild(inpSubmit);
 			anchorItem.appendChild(inpDiv);
+			anchorItem.classList.add("_pendota-has-side-input_");
 			anchorItem.addEventListener("click", pendota.showDdInpField);
 			return inpDiv;
 		};
 
 		// Reset button
-		if (attribute != "type") {
-			var resetBtn = addDdItem("Reset");
-			resetBtn.addEventListener("click", pendota.resetTagItemListener);
-		}
+		var resetBtn = addDdItem("Reset");
+		resetBtn.addEventListener("click", pendota.resetTagItemListener);
+
+		// Contains rule button
+		// Only applies to the lowest element
 
 		// Begins with rule button
 		// Not allowed with classes
 		if (!["type", "class"].includes(attribute)) {
-			var beginsBtn = addDdItem("Begins with ▸");
+			var beginsBtn = addDdItem("Begins with");
 			var beginsInpDiv = addDdItemInput(beginsBtn);
 			beginsInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
 				pendota.setTagBuildRuleFromEvent(e, {type: "beginsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
@@ -524,7 +531,7 @@ if (!pendota._pendotaUIIsInjected) {
 
 		// Includes rule button
 		if (attribute != "type") {
-			var includesBtn = addDdItem("Includes ▸");
+			var includesBtn = addDdItem("Includes");
 			var includesInpDiv = addDdItemInput(includesBtn);
 			includesInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
 				pendota.setTagBuildRuleFromEvent(e, {type: "includes", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
@@ -535,13 +542,21 @@ if (!pendota._pendotaUIIsInjected) {
 		// Ends with rule button
 		// Not allowed with classes
 		if (!["type", "class"].includes(attribute)) {
-			var endsBtn = addDdItem("Ends with ▸");
+			var endsBtn = addDdItem("Ends with");
 			var endsInpDiv = addDdItemInput(endsBtn);
 			endsInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
 				pendota.setTagBuildRuleFromEvent(e, {type: "endsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
 			})
 			
 		}
+
+		// Custom rule button
+		// Allows freetext entry
+		var customBtn = addDdItem("Custom");
+		var customInpDiv = addDdItemInput(customBtn, false);
+		customInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
+			pendota.setTagBuildRuleFromEvent(e, {type: "custom", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
+		})
 
 		// Delete button
 		var deleteBtn = addDdItem("Delete");
@@ -589,7 +604,11 @@ if (!pendota._pendotaUIIsInjected) {
 			elm = ev.target.closest('.' + pendota.tagItemDdItemClass);
 			var inpDiv = elm.querySelector('.' + pendota.tagItemDdInpDivClass);
 			var inpField = elm.querySelector('.' + pendota.tagItemDdInpClass);
-			inpField.value = elm.closest('.' + pendota.tagItemClass).querySelector('.' + pendota.tagItemTextClass).dataset.rawValue;
+			if ("useRawVal" in inpDiv.dataset) {
+				inpField.value = elm.closest('.' + pendota.tagItemClass).querySelector('.' + pendota.tagItemTextClass).dataset.rawValue;
+			} else {
+				inpField.value = elm.closest('.' + pendota.tagItemClass).querySelector('.' + pendota.tagItemTextClass).textContent;
+			}
 			inpDiv.classList.add(pendota.ddShowClass);
 			inpField.focus();
 			inpField.setSelectionRange(0,0);
@@ -621,16 +640,21 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.createCSSRule = function (attribute, itemValue, rule) {
 		var outStr = "";
-		if (attribute == "type") {
+		if (typeof(rule) !== "undefined" && rule.type === "custom") {
+			outStr = rule.value;
+		} else if (attribute === "type") {
 			// item is an element type
 			outStr = itemValue;
-		} else if (typeof rule == "undefined" && attribute == "class") {
+		} else if (attribute === "contains") {
+			// item is an element type
+			outStr = ":contains(" + itemValue + ")";
+		} else if ((typeof (rule) === "undefined") && attribute === "class") {
 			// item is a class with no modifying rules
 			outStr = "." + itemValue;
-		} else if (typeof rule == "undefined" && attribute == "id") {
+		} else if ((typeof (rule) === "undefined") && attribute === "id") {
 			// item is an id with no modifying rules
 			outStr = "#" + itemValue;
-		} else if (typeof rule != "undefined" && attribute == "class") {
+		} else if (typeof rule !== "undefined" && attribute === "class") {
 			// begin and ends with rules on classes are tricky; better not to allow them
 			switch (rule.type) {
 				case "includes":
@@ -640,7 +664,7 @@ if (!pendota._pendotaUIIsInjected) {
 					// rule type not recognized, default to equals
 					outStr = "[" + attribute + '="' + itemValue + '"]';
 			}
-		} else if (typeof rule != "undefined") {
+		} else if (typeof rule !== "undefined") {
 			// item has a modifying rule and is not a class or type
 			switch (rule.type) {
 				case "beginsWith":
@@ -652,6 +676,9 @@ if (!pendota._pendotaUIIsInjected) {
 				case "includes":
 					outStr = "[" + attribute + '*="' + rule.value + '"]';
 					break;
+				case "custom":
+					outStr = rule.value;
+					break;
 				default:
 					// rule type not recognized, default to equals
 					outStr = "[" + attribute + '="' + itemValue + '"]';
@@ -660,6 +687,7 @@ if (!pendota._pendotaUIIsInjected) {
 			// item is not a type/class/id and has no modifying rules
 			outStr = "[" + attribute + '="' + itemValue + '"]';
 		}
+
 		return outStr;
 	};
 
@@ -683,7 +711,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.addToBuildListener = function (e) {
 		e.stopPropagation();
 		e.preventDefault();
-		inp = document.getElementById(e.currentTarget.dataset.id);
+		inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
 		pendota.addToTagBuild(
 			pendota._pendota_elem_array_.length - 1,
 			inp.dataset.attr,
@@ -704,68 +732,89 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {element} e
 	 */
 	pendota.updatePendotaContents = function (e) {
+		console.log('newElm: ', e);
 		// Get the target element's Id and Classes
-		var _id_ = e.id;
-		var _classNames_ = e.classes;
+		var _id_ = e.id || "";
+		var _classNames_ = e.classes || [];
 
-		var _elemType_ = e.nodeName.toLowerCase(); // stylistic choice
+		var _elemType_ = (!!e.nodeName ? e.nodeName.toLowerCase() : ""); // stylistic choice
 
-		var appendedHTML = ""; // clear extra class results
+		var createItemRow = function(attr, rawVal, fmtVal) {
+			var tr = document.createElement('tr');
+			var inpTd = document.createElement('td');
+			inpTd.setAttribute("width", "82%");
+			inpTd.classList.add("_pendota_input-row_");
+			var inp = document.createElement('input')
+			inp.setAttribute('no-drag', "");
+			inp.classList.add("_pendota_form-control_")
+			inp.classList.add("_pendota_" + attr + "-result_")
+			inp.setAttribute("type", "text");
+			inp.value = fmtVal;
+			inp.dataset.attr = attr;
+			inp.dataset.rawvalue = rawVal;
+			inp.dataset.value = fmtVal;
+			inp.setAttribute("title", "fmtVal");
+			inp.setAttribute("readonly","");
+			inpTd.appendChild(inp);
+			tr.appendChild(inpTd);
+			var breakTd = document.createElement('td');
+			breakTd.setAttribute("width", "2%")
+			breakTd.classList.add("_pendota_input-row_");
+			breakTd.innerHTML = "&nbsp;"
+			tr.appendChild(breakTd);
+			var plusTd = document.createElement('td');
+			plusTd.setAttribute("width", "8%");
+			plusTd.classList.add("_pendota_input-row_");
+			var plusDiv = document.createElement('div');
+			plusDiv.classList.add("_pendota-addtobuild-btn_");
+			plusDiv.setAttribute("title", "Add to tag");
+			var plusA = document.createElement('a');
+			plusA.setAttribute("href","javascript:void(0);");
+			var plusImg = document.createElement('img');
+			plusImg.classList.add("_pendota-addtobuild-icon_");
+			plusImg.setAttribute("src", pendota.plus_sq_url);
+			plusA.appendChild(plusImg);
+			plusDiv.appendChild(plusA);
+			plusTd.appendChild(plusDiv);
+			tr.appendChild(plusTd);
+			var copyTd = document.createElement('td');
+			copyTd.setAttribute("width", "8%");
+			copyTd.classList.add("_pendota_input-row_");
+			var copyDiv = document.createElement('div');
+			copyDiv.classList.add("_pendota-copy-btn_");
+			copyDiv.setAttribute("title", "Add to tag");
+			var copyA = document.createElement('a');
+			copyA.setAttribute("href","javascript:void(0);");
+			var copyImg = document.createElement('img');
+			copyImg.classList.add("_pendota-copy-icon_");
+			copyImg.setAttribute("src", pendota.copy_icon_url);
+			copyA.appendChild(copyImg);
+			copyDiv.appendChild(copyA);
+			copyTd.appendChild(copyDiv);
+			tr.appendChild(copyTd);
+			return tr;
+		}
+		
+		// Clear existing values
+		document.getElementById(pendota.uiTypeTableId).innerHTML = "";
+		document.getElementById(pendota.uiIdTableId).innerHTML = "";
+		document.getElementById(pendota.uiClassTableId).innerHTML = "";
+		document.getElementById(pendota.uiAttrTableId).innerHTML = "";
 
-		// Set the result boxes that are always visible
-		$("#_pendota_type-result_").attr("value", "" + _elemType_);
-		$("#_pendota_type-result_").attr("data-rawvalue", _elemType_);
-		$("#_pendota_type-result_").attr("title", "" + _elemType_);
-		$("#_pendota_id-result_").attr("value", "#" + _id_);
-		$("#_pendota_id-result_").attr("data-rawvalue", _id_);
-		$("#_pendota_id-result_").attr("title", "#" + _id_);
-		$("#_pendota_class-result-0_").attr("value", "." + _classNames_[0]);
-		$("#_pendota_class-result-0_").attr("data-rawvalue", _classNames_[0]);
-		$("#_pendota_class-result-0_").attr("title", "" + _classNames_[0]);
-		$("#_pendota_template-table_").empty();
+		// Add type
+		document.getElementById(pendota.uiTypeTableId).appendChild(createItemRow("type", _elemType_, _elemType_));
 
-		// Build extra class spaces
-		for (i = 1; i < _classNames_.length; i++) {
-			appendedHTML =
-				appendedHTML +
-				"<tr>" +
-				'<td width="82%" class="_pendota_input-row_"><input no-drag class="_pendota_form-control_ _pendota_class-result_" type="text" id="_pendota_class-result-' +
-				i +
-				'_"  data-attr="class" data-rawvalue="' +
-				_classNames_[i] +
-				'" value=".' +
-				_classNames_[i] +
-				'" title=".' +
-				_classNames_[i] +
-				'" readonly></td>' +
-				'<td width="2%" class="_pendota_input-row_">&nbsp;</td>' +
-				'<td width="8%" class="_pendota_input-row_">' +
-				'<div data-id="_pendota_class-result-' +
-				i +
-				'_" class="_pendota-addtobuild-btn_"  title="Add to tag">' +
-				'<a href="#"><img class="_pendota-addtobuild-icon_" src=' +
-				pendota.plus_sq_url +
-				" ></a>" +
-				"</div>" +
-				"</td>" +
-				'<td width="8%" class="_pendota_input-row_">' +
-				'<div data-id="_pendota_class-result-' +
-				i +
-				'_" class="_pendota-copy-link_" title="Copy value">' +
-				'<a href="#"><img class=_pendota-copy-icon_ src=' +
-				pendota.copy_icon_url +
-				"> </a>" +
-				"</div>" +
-				"</td>" +
-				"</tr>";
+		// Add id
+		document.getElementById(pendota.uiIdTableId).appendChild(createItemRow("id", _id_, '#' + _id_));
+
+		// If no classes, show a blank
+		if (_classNames_.length === 0) document.getElementById(pendota.uiClassTableId).appendChild(createItemRow("class", '', '.' ));
+		// Build class rows
+		for (i = 0; i < _classNames_.length; i++) {
+			document.getElementById(pendota.uiClassTableId).appendChild(createItemRow("class", _classNames_[i], '.' + _classNames_[i]));
 		}
 
-		// Append extra class spaces
-		if (_classNames_.length > 1) {
-			$("#_pendota_template-table_").html(appendedHTML);
-		}
-
-		// Define the copy function for all copy icons
+		// Define the copy and add functions for all icons
 		pendota.applyCopyFunction();
 		pendota.applyAddFunction();
 	};
