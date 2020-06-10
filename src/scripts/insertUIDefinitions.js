@@ -137,8 +137,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.lockedState = function () {
 		// Locks the scanner and UI
-		document.getElementById("_pendota_status_").textContent =
-			"Element Locked.  Click anywhere to reset.";
+		pendota.hide(document.getElementById("_pendota_lock-message_"));
 		//stopMouseover();
 		$("#_pendota-lock-icon_").html(
 			'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
@@ -173,9 +172,7 @@ if (!pendota._pendotaUIIsInjected) {
 		feather.replace();
 
 		// Set a status text letting the user the targeting is ready
-		document.getElementById("_pendota_status_").innerHTML =
-			"Click anywhere to Inspect. (Alt + Shift + L)";
-		//startMouseover();
+		pendota.show(document.getElementById("_pendota_lock-message_"));
 		pendota._pendota_isLocked_ = false;
 	};
 

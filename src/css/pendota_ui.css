@@ -85,12 +85,15 @@
 }
 
 ._pendota-wrapper_ #_pendota-lock-icon_ {
+	display: inline-block;
+	margin: 0 auto;
 	vertical-align: middle;
 }
 
 ._pendota-wrapper_ ._pendota-feather-locked_ {
-	height: 18px;
-	width: 18px;
+	height: 36px;
+	margin: 0 auto;
+	width: 36px;
 	stroke: var(--pendo-charcoal);
 }
 
@@ -118,8 +121,15 @@
 	z-index: 99999999999;
 }
 
-._pendota-wrapper_ #_pendota_status_ {
+._pendota-wrapper_ #_pendota-status_ {
+	margin: 0 auto;
+	min-height: 36px;
+	width: fit-content;
+}
+
+._pendota-wrapper_ #_pendota_lock-message_ {
 	/* avoid an excessively wide status text */
+	display: inline-block;
 	font-size: 12px;
 	font-weight: 500;
 	margin: auto;

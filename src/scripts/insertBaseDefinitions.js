@@ -273,6 +273,7 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota.signalLockSwitch = function(e, isLocked) {
 		e.preventDefault();
+		console.log('locked on: ', e)
 		if (
 			pendota.someParentHasClass(e.target, pendota.lockedIconClass) ||
 			!pendota.someParentHasID(e.target, pendota.taggingAidId)
@@ -322,8 +323,10 @@ if (!pendota._pendotaIsInjected) {
 			pendota.signalDeactivate();
 		} else if (pendota.someParentHasClass(el, pendota.lockedIconClass)) {
 			pendota.signalLockSwitch(e, false);
-		} else if (!pendota.someParentHasID(el, pendota.taggingAidId)) {
-			pendota.signalLockSwitch(e, pendota.scannerIsActive);
+		} else if (!pendota.someParentHasID(el, pendota.taggingAidId) && pendota.scannerIsActive) {
+			// changed to not trigger unlock on body click
+			pendota.signalLockSwitch(e, true);
+			//pendota.signalLockSwitch(e, pendota.scannerIsActive);
 		}
 	}
 
