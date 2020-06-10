@@ -42,6 +42,7 @@
     vertical-align: middle;
 	visibility:visible;
     white-space:normal;
+    z-index: unset;
 }
 
 ._pendota-wrapper_ {
@@ -54,8 +55,11 @@
     display: none;
 }
 
+._pendota-wrapper_ ._pendota-disabled_ {
+    opacity: 50%;
+}
+
 ._pendota-wrapper_ ._pendota_container_ {
-    max-height: 600px;
     overflow-y: auto;
     min-height: 450px;
     max-width: 350px;
@@ -145,24 +149,39 @@
 }
 
 ._pendota-wrapper_ h5._pendota_  {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     display: inline-block;
     padding-bottom: 5px;
 }
 
+._pendota-wrapper_ #_pendota-element-details_ {
+    margin-bottom: 16px;
+}
+
 ._pendota-wrapper_ ._pendota_form-control_ {
     border-radius: 4px;
-    padding: 5px;
+    padding: 6px 4px;
     background-color: #efefef;
     width: 100%;
     font-size: 12px;
     margin: 0 auto;
-    height: 25px;
+    line-height: 12px;
+}
+
+._pendota-wrapper_ ._pendota-select-dropdown_ {
+    background-color: white;
+    border: 1px solid var(--pendo-charcoal);
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 4px;
+    margin: 0 auto 8px;
+    width: 60%;
+    z-index: 10000;
 }
 
 ._pendota-wrapper_ ._pendota_form-group_ {
-    max-height: 200px;
+    max-height: 160px;
     overflow: auto;
 }
 
@@ -224,7 +243,7 @@
     color: inherit;
     display: inline-block;
     font-size: inherit;
-    max-width: 220px;
+    max-width: 190px;
     overflow: hidden;
     padding: 4px 0;
     text-overflow: ellipsis;
@@ -249,7 +268,6 @@
     position: absolute;
     min-width: 75px;
     overflow: visible;
-    z-index: 1;
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-item_ {
@@ -318,7 +336,7 @@
     border-radius: 4px;
     display: inline-block;
     height: 24px;
-    min-width: 40px;
+    min-width: 200px;
     margin: 4px;
     padding: 6px 4px;
 }

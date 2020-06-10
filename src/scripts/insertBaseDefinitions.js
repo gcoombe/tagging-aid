@@ -43,6 +43,7 @@ if (!pendota._pendotaIsInjected) {
 
 	// reused variables
 	pendota.taggingAidId = "_pendota-tag-assistant_";
+	pendota.pendotaWrapperClass = "_pendota-wrapper_";
 	pendota.lockedIconClass = "_pendota-icon-locked_";
 	pendota.outlineBoxClass = "_pendota-outline_";
 	pendota.exitImgContainerId = "_pendota_exit_img_container_";
@@ -245,7 +246,16 @@ if (!pendota._pendotaIsInjected) {
 					}
 				}
 			}
-			outElm.textContent = element.textContent;
+			var tmpSpan = document.createElement('span');
+			// passing to innerText then textContent strips out extra white space and text nodes like <br>
+			// this is not quite 1:1 with Pendo, which does something to get only a single child node's text content,
+			// but doesn't consider text nodes like <h1> or <span>. Room for improvement here.
+			if(!!element.innerText) {
+				tmpSpan.innerText = element.innerText;
+				outElm.textContent = tmpSpan.textContent;
+			} else {
+				outElm.textContent = "";
+			}
 			outElm.parentNode = pendota.passableObject(element.parentNode);
 			 if (!!outElm.parentNode) {
 				delete outElm.parentNode.textContent;
@@ -436,7 +446,7 @@ if (!pendota._pendotaIsInjected) {
 				for (var i = 0; i < selectedElms.length; i++) {
 					elm = selectedElms[i];;
 					if (
-						!pendota.someParentHasID(elm, pendota.taggingAidId) &&
+						!pendota.someParentHasClass(elm, pendota.pendotaWrapperClass) &&
 						!pendota.someParentHasClass(elm, pendota.outlineBoxClass)
 					) {
 						numMatch++;
