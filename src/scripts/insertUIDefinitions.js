@@ -204,7 +204,6 @@ if (!pendota._pendotaUIIsInjected) {
 		e.stopPropagation();
 		e.preventDefault();
 		inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
-		console.log('tr: ', e.target.closest('tr'))
 		pendota.copyToClipboard(inp);
 	};
 
@@ -258,7 +257,6 @@ if (!pendota._pendotaUIIsInjected) {
 	* @returns {bool} is contains rule eligible
 	*/
 	pendota.checkContainsRuleEligibility = function() {
-		console.log('checking contains rule');
 		var tier = pendota._pendota_elem_array_.length - 1;
 		for (var i = 0; i < pendota.tagBuild.length; i++) {
 			var checkTier = pendota.tagBuild[i].tier;
@@ -271,7 +269,6 @@ if (!pendota._pendotaUIIsInjected) {
 				return false;
 			}
 		}
-		console.log('false (no loop)');
 		return false;
 	} 
 
