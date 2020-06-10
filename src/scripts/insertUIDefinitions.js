@@ -146,6 +146,7 @@ if (!pendota._pendotaUIIsInjected) {
 		$("#_pendota-parent-up_").removeClass("_pendota-hide-arrow_");
 		$("#_pendota-parent-down_").removeClass("_pendota-hide-arrow_");
 		feather.replace();
+
 		$("#_pendota-feather-up-arrow_").attr(
 			"class",
 			"_pendota-parent-arrow_ _pendota-active-arrow_"
@@ -155,6 +156,7 @@ if (!pendota._pendotaUIIsInjected) {
 			"_pendota-parent-arrow_ _pendota-disabled-arrow_"
 		);
 		pendota._pendota_isLocked_ = true;
+		pendota.checkAddBtnsEligibility();
 	};
 
 	/*
@@ -174,6 +176,7 @@ if (!pendota._pendotaUIIsInjected) {
 		// Set a status text letting the user the targeting is ready
 		pendota.show(document.getElementById("_pendota_lock-message_"));
 		pendota._pendota_isLocked_ = false;
+		pendota.checkAddBtnsEligibility();
 	};
 
 	/*
@@ -382,8 +385,9 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.checkAddBtnsEligibility = function() {
 		var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
 		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
+		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
-			if (freeTextMode) pendota.hide(addBtns[i])
+			if (freeTextMode || !isLocked) pendota.hide(addBtns[i])
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
 		}
