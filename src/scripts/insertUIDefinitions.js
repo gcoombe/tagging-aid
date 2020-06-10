@@ -267,11 +267,9 @@ if (!pendota._pendotaUIIsInjected) {
 		for (var i = 0; i < pendota.tagBuild.length; i++) {
 			var checkTier = pendota.tagBuild[i].tier;
 			if (tier === checkTier) {
-				console.log('true');
 				return true;
 			}
 			if (tier > checkTier) {
-				console.log('false');
 				return false;
 			}
 		}
@@ -498,7 +496,6 @@ if (!pendota._pendotaUIIsInjected) {
 	 * Checks the current tag build and updates the auto-built tag and free-text tag to reflect it
 	 */
 	pendota.updateAutoTag = function () {
-		console.log("tagBuild: ", pendota.tagBuild);
 		var fullTag = document.createElement("div");
 		var rawFullTag = "";
 		for (var o = 0; o < pendota.tagBuild.length; o++) {
@@ -518,7 +515,6 @@ if (!pendota._pendotaUIIsInjected) {
 				e.target.closest("." + pendota.tagItemClass)
 			);
 		});
-		console.log("fullTag: ", rawFullTag);
 		if (rawFullTag.trim() != "") {
 			document
 				.getElementById(pendota.tagBuilderPlaceholderId)

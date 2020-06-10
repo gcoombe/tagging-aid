@@ -273,7 +273,6 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota.signalLockSwitch = function(e, isLocked) {
 		e.preventDefault();
-		console.log('locked on: ', e)
 		if (
 			pendota.someParentHasClass(e.target, pendota.lockedIconClass) ||
 			!pendota.someParentHasID(e.target, pendota.taggingAidId)
