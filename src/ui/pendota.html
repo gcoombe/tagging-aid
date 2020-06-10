@@ -25,21 +25,36 @@
     </div>
     <div class="_pendota-form-group_">
       <table id="_pendota-tag-builder-table_" width="100%">
-        <tr>
-          <td width="75%">
-            <div id="_pendota-tag-builder_">
-              <div id="_pendota-auto-tags_"></div>
-              <div id="_pendota-tag-builder-placeholder_">Click [+] to start building a tag</div>
-              <form id="_pendota-sizzler-form_" class="_pendota-hidden_"><input no-drag class="_pendota_form-control_"
-                  type="text" id="_pendota-sizzler_" value="" autocomplete="off" placeholder="Test a selector...">
+        <tr height="32px">
+          <td width="76%" rowspan="2">
+            <div id="_pendota-tag-builder_" data-freetext-mode="off">
+              <div id="_pendota-tag-builder-non-freetext_">
+                <div id="_pendota-auto-tags_"></div>
+                <div id="_pendota-tag-builder-placeholder_">Click [+] to start building a tag</div>
+              </div>
+              <form id="_pendota-sizzler-form_" class="_pendota-hidden_"><textarea no-drag class="_pendota_form-control_"
+                  type="text" id="_pendota-sizzler_" value="" autocomplete="off" placeholder="Test a selector..."></textarea>
               </form>
             </div>
-          <td width="10%">
+          <td width="12%">
             <div id="_pendota-sizzler-count_"> -- </div>
           </td>
-          <td width="15%">
-            <a href="#" id="_pendota-sizzler-icon_">Test</a>
+          <td width="12%">
+            <a href="javascript:void(0);" id="_pendota-sizzler-btn_" class="_pendota-button_ _pendota-tag-builder-button_" title="Test tag"><i
+              id="_pendota-sizzler-icon_" class="_pendota-button-icon_" data-feather="play-circle"></i>
           </td>
+          </td>
+        </tr>
+        <tr id="_pendota-tag-builder-buttons_">
+          <td width="12%">
+            <a href="javascript:void(0);" id="_pendota-free-text-btn_" class="_pendota-button_ _pendota-tag-builder-button_"
+              title="Free text tag"><i id="_pendota-free-text-icon_" class="_pendota-button-icon_"
+                data-feather="type"></i></a>
+          </td>
+          <td width="12%">
+            <a href="javascript:void(0);" id="_pendota-tag-builder-copy-btn_" class="_pendota-button_ _pendota-tag-builder-button_"
+              title="Copy tag to clipboard"><i id="_pendota-tag-builder-copy-icon_" class="_pendota-button-icon_"
+                data-feather="copy"></i></a>
           </td>
         </tr>
       </table>

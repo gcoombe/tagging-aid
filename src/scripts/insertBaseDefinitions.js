@@ -251,8 +251,10 @@ if (!pendota._pendotaIsInjected) {
 			// this is not quite 1:1 with Pendo, which does something to get only a single child node's text content,
 			// but doesn't consider text nodes like <h1> or <span>. Room for improvement here.
 			if(!!element.innerText) {
-				tmpSpan.innerText = element.innerText;
-				outElm.textContent = tmpSpan.textContent;
+				var txtc = element.textContent;
+				if (txtc.length > 128) txtc = txtc.substring(0,127);
+				txtc = txtc.trim();
+				outElm.textContent = txtc;
 			} else {
 				outElm.textContent = "";
 			}

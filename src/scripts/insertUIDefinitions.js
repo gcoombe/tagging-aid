@@ -8,10 +8,17 @@ if (!pendota._pendotaUIIsInjected) {
 	// Reused variables
 	pendota.hiddenClass = "_pendota-hidden_";
 	pendota.ddShowClass = "_pendota-dropdown-show_";
+	pendota.sizzlerInputFormId = "_pendota-sizzler-form_";
 	pendota.sizzlerInputId = "_pendota-sizzler_";
-	pendota.sizzlerBtnId = "_pendota-sizzler-icon_";
+	pendota.sizzlerBtnId = "_pendota-sizzler-btn_";
+	pendota.sizzlerIconId = "_pendota-sizzler-icon_";
 	pendota.sizzlerCountId = "_pendota-sizzler-count_";
+	pendota.tagBuilderCopyBtnId = "_pendota-tag-builder-copy-btn_";
+	pendota.tagBuilderFreetextBtnId = "_pendota-free-text-btn_";
+	pendota.copyBtnClass = "_pendota-copy-btn_";
 	pendota.autoTagsId = "_pendota-auto-tags_";
+	pendota.tagBuilderId = "_pendota-tag-builder_";
+	pendota.tagBuilderNonFreetextId = "_pendota-tag-builder-non-freetext_";
 	pendota.tagBuilderPlaceholderId = "_pendota-tag-builder-placeholder_";
 	pendota.tagElmClass = "_pendota-tag-elm_";
 	pendota.tagItemClass = "_pendota-tag-item_";
@@ -21,6 +28,8 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagItemDdInpDivClass = "_pendota-tag-item-dd-inp-div_";
 	pendota.tagItemDdInpClass = "_pendota-tag-item-dd-inp_";
 	pendota.tagItemDdInpSubmitClass = "_pendota-tag-item-dd-inp-submit_";
+	pendota.copyBtnClass = "_pendota-copy-btn_";
+	pendota.addToBuildBtnClass = "_pendota-addtobuild-btn_";
 	pendota.uiTypeBlockId = "_pendota-type-block_";
 	pendota.uiTypeTableId = "_pendota_type-table_";
 	pendota.uiIdBlockId = "_pendota-id-block_";
@@ -49,6 +58,22 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendota_isLocked_ = false;
 	pendota.lastSizzleId;
 	pendota.sizzleCount;
+
+	/*
+	* Removes the hidden class from the element
+	* @param {element}	elm
+	*/
+	pendota.show = function(elm) {
+		elm.classList.remove(pendota.hiddenClass);
+	}
+
+	/*
+	* Adds the hidden class from the element
+	* @param {element}	elm
+	*/
+	pendota.hide = function(elm) {
+		elm.classList.add(pendota.hiddenClass);
+	}
 
 	/*
 	 * Listeners for a signal to enter locked/unlocked state
@@ -158,16 +183,17 @@ if (!pendota._pendotaUIIsInjected) {
 	 * Reusable function that copies the content of an element with ID matching inputId to the clipboard.
 	 * @param {element} inputId
 	 */
-	pendota.copyToClipboard = function (inputId) {
-		// Get the text field
-		var copyText = document.getElementById(inputId);
+	pendota.copyToClipboard = function (elm) {
+		if (!elm) return; // do nothing if empty
 
 		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
+		elm.select();
+		elm.setSelectionRange(0, 99999); // For mobile devices
 
 		// Copy the text field
 		document.execCommand("copy");
+
+		elm.setSelectionRange(0,0); // clear highlight when done
 	};
 
 	/*
@@ -177,16 +203,77 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.copyListener = function (e) {
 		e.stopPropagation();
 		e.preventDefault();
-		pendota.copyToClipboard(e.currentTarget.dataset.id);
+		inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
+		console.log('tr: ', e.target.closest('tr'))
+		pendota.copyToClipboard(inp);
 	};
+
+	/* 
+	* The listener that copies the whole built tag to the clipboard
+	* @param {event} e
+	*/
+	pendota.tagBuildCopyListener = function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		pendota.show(document.getElementById(pendota.sizzlerInputFormId));
+		pendota.copyToClipboard(document.getElementById(pendota.sizzlerInputId));
+		pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
+	}
+
+	/* 
+	* The listener that copies the whole built tag to the clipboard
+	* @param {event} e
+	*/
+	pendota.tagBuildFreetextListener = function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		var tB = document.getElementById(pendota.tagBuilderId);
+		if (tB.dataset.freetextMode === "on") {
+			pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
+			pendota.show(document.getElementById(pendota.tagBuilderNonFreetextId));
+			var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
+			tB.dataset.freetextMode = "off";
+			pendota.checkAddBtnsEligibility();
+		} else {
+			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
+			pendota.hide(document.getElementById(pendota.tagBuilderNonFreetextId));
+			var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
+			tB.dataset.freetextMode = "on";
+			pendota.checkAddBtnsEligibility();
+		}
+	}
+
+	/*
 
 	/*
 	 * Finds all copy icons currently in the UI and applies the copy function targeted at the corresponding box.
 	 */
 	pendota.applyCopyFunction = function () {
-		$("._pendota-copy-link_").off("click", pendota.copyListener);
-		$("._pendota-copy-link_").on("click", pendota.copyListener);
+		$("." + pendota.copyBtnClass).off("click", pendota.copyListener);
+		$("." + pendota.copyBtnClass).on("click", pendota.copyListener);
 	};
+
+	/*
+	* Returns the current tier in the element parent array
+	* @returns {bool} is contains rule eligible
+	*/
+	pendota.checkContainsRuleEligibility = function() {
+		console.log('checking contains rule');
+		var tier = pendota._pendota_elem_array_.length - 1;
+		for (var i = 0; i < pendota.tagBuild.length; i++) {
+			var checkTier = pendota.tagBuild[i].tier;
+			if (tier === checkTier) {
+				console.log('true');
+				return true;
+			}
+			if (tier > checkTier) {
+				console.log('false');
+				return false;
+			}
+		}
+		console.log('false (no loop)');
+		return false;
+	} 
 
 	/*
 	 * Adds an attribute in the appropriate location in the tag being built.
@@ -298,6 +385,16 @@ if (!pendota._pendotaUIIsInjected) {
 		pendota.updateAutoTag();
 	};
 
+	pendota.checkAddBtnsEligibility = function() {
+		var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
+		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
+		for (var i = 0; i < addBtns.length; i++) {
+			if (freeTextMode) pendota.hide(addBtns[i])
+			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
+			else pendota.show(addBtns[i]);
+		}
+	}
+
 	/*
 	* Checks if a tag element should be cleared from the build entirely because of it's lack of sufficient items
 	* @param {int}	the build index
@@ -368,7 +465,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var objInd = elm.dataset.buildIndex;
 			var itemInd = item.dataset.itemIndex;
 			if ("isType" in item.dataset) pendota.setTagBuildRule(objInd, "type", itemInd, rule);
-			else if  ("isId" in item.dataset) pendota.setTagBuildRule(objInd, "type", itemInd, rule);
+			else if  ("isId" in item.dataset) pendota.setTagBuildRule(objInd, "id", itemInd, rule);
 			else pendota.setTagBuildRule(objInd, '', itemInd, rule);
 		}
 	}
@@ -427,6 +524,7 @@ if (!pendota._pendotaUIIsInjected) {
 				.getElementById(pendota.tagBuilderPlaceholderId)
 				.classList.remove("_pendota-hidden_");
 		}
+		pendota.checkAddBtnsEligibility();
 	};
 
 	/*
@@ -784,7 +882,6 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {element} e
 	 */
 	pendota.updatePendotaContents = function (e) {
-		console.log('newElm: ', e);
 		// Get the target element's Id and Classes
 		var _id_ = (!!e ? e.id : "") || "";
 		var _classNames_ = (!!e ? e.classes : []) || [];
@@ -818,34 +915,32 @@ if (!pendota._pendotaUIIsInjected) {
 			var plusTd = document.createElement('td');
 			plusTd.setAttribute("width", "8%");
 			plusTd.classList.add("_pendota_input-row_");
-			var plusDiv = document.createElement('div');
-			plusDiv.classList.add("_pendota-addtobuild-btn_");
-			plusDiv.setAttribute("title", "Add to tag");
-			var plusA = document.createElement('a');
-			plusA.setAttribute("href","javascript:void(0);");
-			var plusImg = document.createElement('img');
-			plusImg.classList.add("_pendota-addtobuild-icon_");
-			plusImg.classList.add("_pendota-button-icon_");
-			plusImg.setAttribute("src", pendota.plus_sq_url);
-			plusA.appendChild(plusImg);
-			plusDiv.appendChild(plusA);
-			plusTd.appendChild(plusDiv);
+			var plusBtn = document.createElement('a');
+			plusBtn.classList.add(pendota.addToBuildBtnClass);
+			plusBtn.classList.add("_pendota-button_");
+			plusBtn.setAttribute("title", "Add to tag");
+			plusBtn.setAttribute("href","javascript:void(0);");
+			var plusIcon = document.createElement('i');
+			plusIcon.classList.add("_pendota-addtobuild-icon_");
+			plusIcon.classList.add("_pendota-button-icon_");
+			plusIcon.dataset.feather = "plus-square";
+			plusBtn.appendChild(plusIcon);
+			plusTd.appendChild(plusBtn);
 			tr.appendChild(plusTd);
 			var copyTd = document.createElement('td');
 			copyTd.setAttribute("width", "8%");
 			copyTd.classList.add("_pendota_input-row_");
-			var copyDiv = document.createElement('div');
-			copyDiv.classList.add("_pendota-copy-btn_");
-			copyDiv.setAttribute("title", "Add to tag");
-			var copyA = document.createElement('a');
-			copyA.setAttribute("href","javascript:void(0);");
-			var copyImg = document.createElement('img');
-			copyImg.classList.add("_pendota-copy-icon_");
-			copyImg.classList.add("_pendota-button-icon_");
-			copyImg.setAttribute("src", pendota.copy_icon_url);
-			copyA.appendChild(copyImg);
-			copyDiv.appendChild(copyA);
-			copyTd.appendChild(copyDiv);
+			var copyBtn = document.createElement('a');
+			copyBtn.classList.add(pendota.copyBtnClass);
+			copyBtn.classList.add("_pendota-button_");
+			copyBtn.setAttribute("title", "Add to tag");
+			copyBtn.setAttribute("href","javascript:void(0);");
+			var copyIcon = document.createElement('i');
+			copyIcon.classList.add("_pendota-copy-icon_");
+			copyIcon.classList.add("_pendota-button-icon_");
+			copyIcon.dataset.feather = "copy";
+			copyBtn.appendChild(copyIcon);
+			copyTd.appendChild(copyBtn);
 			tr.appendChild(copyTd);
 			return tr;
 		}
@@ -873,6 +968,8 @@ if (!pendota._pendotaUIIsInjected) {
 			for (var j = 0; j < filtAttrs.length; j++) {
 				document.getElementById(pendota.uiAttrTableId).appendChild(createItemRow(selAttr, filtAttrs[j].value, '[' + selAttr + '="' + filtAttrs[j].value + '"]'))
 			}
+			feather.replace();
+			pendota.checkAddBtnsEligibility();
 			pendota.applyCopyFunction();
 			pendota.applyAddFunction();
 		}
@@ -921,6 +1018,8 @@ if (!pendota._pendotaUIIsInjected) {
 		}
 
 		// Define the copy and add functions for all icons
+		feather.replace();
+		pendota.checkAddBtnsEligibility();
 		pendota.applyCopyFunction();
 		pendota.applyAddFunction();
 	};
@@ -934,8 +1033,9 @@ if (!pendota._pendotaUIIsInjected) {
 			isActive: true,
 		});
 		pendota.signalSizzlerUpdate();
-		$("#" + pendota.sizzlerBtnId).addClass("_pendota-clicked");
-		$("#" + pendota.sizzlerBtnId).html("Stop");
+		document.getElementById(pendota.sizzlerIconId).dataset.feather = "stop-circle";
+		document.getElementById(pendota.sizzlerIconId).classList.add("_pendota-clicked_");
+		feather.replace();
 		document
 			.getElementById(pendota.sizzlerInputId)
 			.addEventListener("input", pendota.signalSizzlerUpdate);
@@ -960,8 +1060,9 @@ if (!pendota._pendotaUIIsInjected) {
 			type: "SIZZLE_SWITCH",
 			isActive: false,
 		});
-		$("#" + pendota.sizzlerBtnId).removeClass("_pendota-clicked");
-		$("#" + pendota.sizzlerBtnId).html("Test");
+		document.getElementById(pendota.sizzlerIconId).dataset.feather = "play-circle";
+		document.getElementById(pendota.sizzlerIconId).classList.remove("_pendota-clicked_");
+		feather.replace();
 		$("#" + pendota.sizzlerCountId).html("--");
 		document
 			.getElementById(pendota.sizzlerInputId)
@@ -1108,6 +1209,10 @@ if (!pendota._pendotaUIIsInjected) {
 				// Create blank values
 				pendota.updatePendotaContents();
 
+				// Set the tag builder button functions
+				document.getElementById(pendota.tagBuilderCopyBtnId).addEventListener("click", pendota.tagBuildCopyListener);
+				document.getElementById(pendota.tagBuilderFreetextBtnId).addEventListener("click", pendota.tagBuildFreetextListener);
+
 				// Sets the onclick function for the parent tree traversal upwards
 				document
 					.getElementById("_pendota-parent-up_")
@@ -1184,10 +1289,14 @@ if (!pendota._pendotaUIIsInjected) {
 				pendota.applyAddFunction();
 
 				// Call highlight toggler when clicking enter
-				$("#_pendota-sizzler-form_").on("submit", function (e) {
-					e.preventDefault();
-					document.getElementById(pendota.sizzlerBtnId).click();
-				});
+				var szlInput = document.getElementById(pendota.sizzlerInputId);
+				szlInput.addEventListener("keyup", function(e) {
+					if(event.key === "Enter") {
+						e.preventDefault();
+						document.getElementById(pendota.sizzlerBtnId).click();
+						szlInput.value = szlInput.value.substring(0, szlInput.value.length - 1);
+					}
+				})
 			});
 	};
 
