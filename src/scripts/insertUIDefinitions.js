@@ -14,7 +14,9 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.sizzlerIconId = "_pendota-sizzler-icon_";
 	pendota.sizzlerCountId = "_pendota-sizzler-count_";
 	pendota.tagBuilderCopyBtnId = "_pendota-tag-builder-copy-btn_";
+	pendota.tagBuilderCopyIconId = "_pendota-tag-builder-copy-icon_";
 	pendota.tagBuilderFreetextBtnId = "_pendota-free-text-btn_";
+	pendota.tagBuilderFreetextIconId = "_pendota-free-text-icon_";
 	pendota.copyBtnClass = "_pendota-copy-btn_";
 	pendota.autoTagsId = "_pendota-auto-tags_";
 	pendota.tagBuilderId = "_pendota-tag-builder_";
@@ -230,13 +232,17 @@ if (!pendota._pendotaUIIsInjected) {
 		if (tB.dataset.freetextMode === "on") {
 			pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.show(document.getElementById(pendota.tagBuilderNonFreetextId));
-			var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
+			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Free text");
+			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "type";
+			feather.replace();
 			tB.dataset.freetextMode = "off";
 			pendota.checkAddBtnsEligibility();
 		} else {
 			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.hide(document.getElementById(pendota.tagBuilderNonFreetextId));
-			var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
+			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Tag builder");
+			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "layers";
+			feather.replace();
 			tB.dataset.freetextMode = "on";
 			pendota.checkAddBtnsEligibility();
 		}
