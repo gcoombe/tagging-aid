@@ -390,9 +390,9 @@
 	justify-content: space-between;
 }
 
-._pendota-wrapper_ ._pendota-arrow-block_ {
+/* ._pendota-wrapper_ ._pendota-arrow-block_ {
 	padding-right: 35px;
-}
+} */
 
 ._pendota-wrapper_ ._pendota-parent-arrow_ {
 	height: 20px;
