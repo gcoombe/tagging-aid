@@ -5,7 +5,9 @@
 ._pendota-wrapper_ *:hover,
 ._pendota-wrapper_ *:visited,
 ._pendota-wrapper_ a,
-._pendota-wrapper_ input {
+._pendota-wrapper_ input,
+._pendota-wrapper_ h5,
+._pendota-wrapper_ div {
 	--pendo-teal: #128297;
 	--pendo-dark-teal: #016479;
 	--pendo-pink: #ec2059;
