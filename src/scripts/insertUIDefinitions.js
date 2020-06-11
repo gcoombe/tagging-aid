@@ -908,6 +908,7 @@ if (!pendota._pendotaUIIsInjected) {
 		var _classNames_ = (!!e ? e.classes : []) || [];
 		var _attrs_ = (!!e ? e.attributes : []) || [];
 		var _textContent_ = (!!e && !!e.textContent ? e.textContent.trim() : "") || "";
+		_textContent_ = _textContent_.replace(/(["])/g, "\\$1");
 		var _elemType_ = (!!e && !!e.nodeName ? e.nodeName.toLowerCase() : "") || ""; // stylistic choice to do lower case
 
 		var createItemRow = function(attr, rawVal, fmtVal) {
@@ -1010,7 +1011,7 @@ if (!pendota._pendotaUIIsInjected) {
 			document.getElementById(pendota.uiTextBlockId).classList.add("_pendota-hidden_");
 		} else {
 			document.getElementById(pendota.uiTextBlockId).classList.remove("_pendota-hidden_");
-			document.getElementById(pendota.uiTextTableId).appendChild(createItemRow("contains", _textContent_, _textContent_));
+			document.getElementById(pendota.uiTextTableId).appendChild(createItemRow("contains", _textContent_, ":contains(\"" + _textContent_ + "\")"));
 		}
 		
 		// Add id
