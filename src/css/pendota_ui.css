@@ -233,6 +233,7 @@
 
 ._pendota-wrapper_ ._pendota-button-icon_ {
 	height: 20px;
+	vertical-align: baseline;
 	width: 20px;
 }
 
