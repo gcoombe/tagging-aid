@@ -212,6 +212,7 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota.startMouseover = function() {
 		pendota.scannerIsActive = true;
+		pendota.blockMajorListeners();
 		window.removeEventListener("mouseover", pendota.blockerFunction, true);
 		window.addEventListener("mouseover", pendota.mouseoverListener, true);
 	}
@@ -221,6 +222,7 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota.stopMouseover = function() {
 		pendota.scannerIsActive = false;
+		pendota.unblockMajorListeners();
 		window.addEventListener("mouseover", pendota.blockerFunction, true);
 		window.removeEventListener("mouseover", pendota.mouseoverListener, true);
 	}

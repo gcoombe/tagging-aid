@@ -1184,17 +1184,16 @@ if (!pendota._pendotaUIIsInjected) {
 
 				var position = { x: 0, y: 0 };
 				// Implements the interact.js library to make the assistant draggable
-				interact("._pendota-draggable_").draggable({
-					ignoreFrom: "[no-drag]",
-					listeners: {
-						move(event) {
-							position.x += event.dx;
-							position.y += event.dy;
-
-							event.target.style.transform = `translate(${position.x}px, ${position.y}px)`;
-						},
-					},
+				var dragObj = interact("._pendota-draggable_").draggable({
+					ignoreFrom: "[no-drag]"
 				});
+
+				dragObj.on('dragmove', function(event){
+					position.x += event.dx;
+					position.y += event.dy;
+
+					event.target.style.transform = `translate(${position.x}px, ${position.y}px)`;
+				}, true);
 
 				// Points the image source for static images stored with extension
 				$("._pendota-copy-icon_").attr("src", pendota.copy_icon_url);
