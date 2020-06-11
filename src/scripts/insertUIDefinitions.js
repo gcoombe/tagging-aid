@@ -139,7 +139,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.lockedState = function () {
 		// Locks the scanner and UI
-		pendota.hide(document.getElementById("_pendota_lock-message_"));
+		document.getElementById("_pendota_lock-message_").innerText = "Click the lock button to Unlock.";
 		//stopMouseover();
 		$("#_pendota-lock-icon_").html(
 			'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
@@ -176,7 +176,7 @@ if (!pendota._pendotaUIIsInjected) {
 		feather.replace();
 
 		// Set a status text letting the user the targeting is ready
-		pendota.show(document.getElementById("_pendota_lock-message_"));
+		document.getElementById("_pendota_lock-message_").innerText = "Click anywhere to Lock.";
 		pendota._pendota_isLocked_ = false;
 		pendota.checkAddBtnsEligibility();
 	};
@@ -216,9 +216,10 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagBuildCopyListener = function(e) {
 		e.stopPropagation();
 		e.preventDefault();
+		var stayHidden = document.getElementById(pendota.sizzlerInputFormId).classList.contains(pendota.hiddenClass);
 		pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 		pendota.copyToClipboard(document.getElementById(pendota.sizzlerInputId));
-		pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
+		if (stayHidden) pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
 	}
 
 	/* 
@@ -391,7 +392,7 @@ if (!pendota._pendotaUIIsInjected) {
 		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
 		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
-			if (freeTextMode || !isLocked) pendota.hide(addBtns[i])
+			if (!isLocked) pendota.hide(addBtns[i])
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
 		}
@@ -853,13 +854,32 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.addToBuildListener = function (e) {
 		e.stopPropagation();
 		e.preventDefault();
-		inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
-		pendota.addToTagBuild(
+		var inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
+		var tB = document.getElementById(pendota.tagBuilderId);
+		
+		if (tB.dataset.freetextMode === "on") {
+			pendota.insertAtCursor(document.getElementById(pendota.sizzlerInputId), pendota.createCSSRule(inp.dataset.attr, inp.dataset.rawvalue));
+		} else {
+			pendota.addToTagBuild(
 			pendota._pendota_elem_array_.length - 1,
 			inp.dataset.attr,
 			inp.dataset.rawvalue
 		);
+		}
+		
 	};
+
+	pendota.insertAtCursor = function(myField, myValue) {
+		if (myField.selectionStart || myField.selectionStart == '0') {
+			var startPos = myField.selectionStart;
+			var endPos = myField.selectionEnd;
+			myField.value = myField.value.substring(0, startPos)
+				+ myValue
+				+ myField.value.substring(endPos, myField.value.length);
+		} else {
+			myField.value += myValue;
+		}
+	}
 
 	/*
 	 * Finds all plus_square icons currently in the UI and applies the addtobuild function targeted at the corresponding box.

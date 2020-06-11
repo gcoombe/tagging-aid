@@ -89,15 +89,21 @@
 }
 
 ._pendota-wrapper_ #_pendota-lock-icon_ {
-	display: inline-block;
+	display: block;
+	height: 32px;
 	margin: 0 auto;
-	vertical-align: middle;
+	width: 32px;
+	width: fit-content;
+/* 	vertical-align: middle; */
+}
+
+._pendota-wrapper_ ._pendota-feather-locked_,
+._pendota-wrapper_ ._pendota-feather-unlocked_ {
+	height: 32px;
+	width: 32px;
 }
 
 ._pendota-wrapper_ ._pendota-feather-locked_ {
-	height: 36px;
-	margin: 0 auto;
-	width: 36px;
 	stroke: var(--pendo-charcoal);
 }
 
@@ -110,8 +116,8 @@
 }
 
 ._pendota-wrapper_ ._pendota-feather-unlocked_ {
-	height: 18px;
-	width: 18px;
+/* 	height: 18px;
+	width: 18px; */
 	stroke: #a9a9a9;
 }
 
