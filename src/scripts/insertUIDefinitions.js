@@ -509,13 +509,14 @@ if (!pendota._pendotaUIIsInjected) {
 		}
 		document.getElementById(pendota.autoTagsId).innerHTML = "";
 		document.getElementById(pendota.autoTagsId).appendChild(fullTag);
+		rawFullTag = rawFullTag.trim();
 		pendota.changeSizzlerValue(rawFullTag);
 		$("." + pendota.tagItemTextClass).on("click", function (e) {
 			pendota.displayTagItemDropdown(
 				e.target.closest("." + pendota.tagItemClass)
 			);
 		});
-		if (rawFullTag.trim() != "") {
+		if (rawFullTag != "") {
 			document
 				.getElementById(pendota.tagBuilderPlaceholderId)
 				.classList.add("_pendota-hidden_");
