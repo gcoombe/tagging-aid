@@ -158,6 +158,7 @@ if (!pendota._pendotaUIIsInjected) {
 			"_pendota-parent-arrow_ _pendota-disabled-arrow_"
 		);
 		pendota._pendota_isLocked_ = true;
+		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
 	};
 
@@ -178,6 +179,7 @@ if (!pendota._pendotaUIIsInjected) {
 		// Set a status text letting the user the targeting is ready
 		document.getElementById("_pendota_lock-message_").innerText = "Click anywhere to Lock.";
 		pendota._pendota_isLocked_ = false;
+		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
 	};
 
@@ -241,6 +243,9 @@ if (!pendota._pendotaUIIsInjected) {
 		} else {
 			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.hide(document.getElementById(pendota.tagBuilderNonFreetextId));
+			var inpField = document.getElementById(pendota.sizzlerInputId);
+			inpField.selectionStart = inpField.selectionEnd = inpField.value.length;
+			inpField.focus();
 			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Tag builder");
 			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "layers";
 			feather.replace();
@@ -517,15 +522,7 @@ if (!pendota._pendotaUIIsInjected) {
 				e.target.closest("." + pendota.tagItemClass)
 			);
 		});
-		if (rawFullTag != "") {
-			document
-				.getElementById(pendota.tagBuilderPlaceholderId)
-				.classList.add("_pendota-hidden_");
-		} else {
-			document
-				.getElementById(pendota.tagBuilderPlaceholderId)
-				.classList.remove("_pendota-hidden_");
-		}
+		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
 	};
 
@@ -534,10 +531,19 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.clearAutoTag = function () {
 		pendota.tagBuild = [];
-		document.getElementById(pendota.tagBuilderPlaceholderId).classList.remove("_pendota-hidden_");
+		pendota.checkPlaceholderEligibility();
 		document.getElementById(pendota.autoTagsId).innerHTML = "";
 		pendota.changeSizzlerValue(" ");
 	};
+
+	pendota.checkPlaceholderEligibility = function() {
+		var isLocked = pendota._pendota_isLocked_;
+		if(pendota.tagBuild.length === 0 && isLocked) {
+			pendota.show(document.getElementById(pendota.tagBuilderPlaceholderId));
+		} else {
+			pendota.hide(document.getElementById(pendota.tagBuilderPlaceholderId));
+		}
+	}
 
 	/*
 	 * Accepts a tagBuild object as input and returns it in valid CSS selector syntax
@@ -616,7 +622,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var inpDiv = document.createElement("div");
 			inpDiv.classList.add(pendota.tagItemDdInpDivClass);
 			if (useRawVal) inpDiv.dataset.useRawVal = "";
-			var inp = document.createElement("input");
+			var inp = document.createElement("textarea");
 			inp.classList.add(pendota.tagItemDdInpClass);
 			var inpSubmit = document.createElement("button");
 			inpSubmit.classList.add(pendota.tagItemDdInpSubmitClass);
@@ -873,7 +879,7 @@ if (!pendota._pendotaUIIsInjected) {
 		if (myField.selectionStart || myField.selectionStart == '0') {
 			var startPos = myField.selectionStart;
 			var endPos = myField.selectionEnd;
-			myField.value = myField.value.substring(0, startPos)
+			myField.value = myField.value.substring(0, endPos)
 				+ myValue
 				+ myField.value.substring(endPos, myField.value.length);
 		} else {
@@ -1116,7 +1122,7 @@ if (!pendota._pendotaUIIsInjected) {
 			cancelable: true,
 		});
 		var sizzlerInput = document.getElementById(pendota.sizzlerInputId);
-		sizzlerInput.value = newValue;
+		sizzlerInput.value = newValue.trim();
 		sizzlerInput.dispatchEvent(inpEvent);
 		sizzlerInput.dispatchEvent(chgEvent);
 	};
