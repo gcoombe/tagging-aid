@@ -402,8 +402,7 @@ if (!pendota._pendotaUIIsInjected) {
 		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
 		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
-			if (!isLocked) pendota.hide(addBtns[i])
-			else if (addBtns[i].closest())
+			if (!isLocked) pendota.hide(addBtns[i]);
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
 		}
