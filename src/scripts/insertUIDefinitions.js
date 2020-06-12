@@ -6,6 +6,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendota_elem_array_ = [];
 
 	// Reused variables
+	pendota.wrapperClass = "_pendota-wrapper_";
 	pendota.hiddenClass = "_pendota-hidden_";
 	pendota.ddShowClass = "_pendota-dropdown-show_";
 	pendota.sizzlerInputFormId = "_pendota-sizzler-form_";
@@ -140,7 +141,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.lockedState = function () {
 		// Locks the scanner and UI
-		document.getElementById("_pendota_lock-message_").innerHTML = "Build a tag! (Click the lock to pick a new feature)";
+		document.getElementById("_pendota_lock-message_").innerHTML = "Build a tag or click the lock to pick a new feature.";
 		$("#_pendota-lock-icon_").html(
 			'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
 		);
@@ -402,7 +403,10 @@ if (!pendota._pendotaUIIsInjected) {
 		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
 		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
+			var inp = addBtns[i].closest('tr').querySelector('.' + pendota.uiItemInputClass);
 			if (!isLocked) pendota.hide(addBtns[i]);
+			else if (inp.dataset.rawvalue === "") pendota.hide(addBtns[i]);
+			else if (freeTextMode) pendota.show(addBtns[i]);
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
 		}
@@ -573,7 +577,7 @@ if (!pendota._pendotaUIIsInjected) {
 			tmpTextSpan.title = addStr;
 			tmpTextSpan.dataset.rawValue = val;
 			tmpSpan.append(tmpTextSpan);
-			tmpSpan.appendChild(pendota.createTagItemDropdown(attr));
+			tmpSpan.appendChild(pendota.createTagItemDropdown(attr, rule));
 			htmlTagOut.append(tmpSpan);
 			return tmpSpan;
 		};
@@ -612,7 +616,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 * Generates a dropdown menu for different attribute types
 	 * @param {string} attribute
 	 */
-	pendota.createTagItemDropdown = function (attribute) {
+	pendota.createTagItemDropdown = function (attribute, rule) {
 		var ddContent = document.createElement("div");
 		ddContent.classList.add(pendota.tagItemDdClass);
 
@@ -647,8 +651,10 @@ if (!pendota._pendotaUIIsInjected) {
 		};
 
 		// Reset button
-		var resetBtn = addDdItem("Reset");
-		resetBtn.addEventListener("click", pendota.resetTagItemListener);
+		if (typeof(rule) !== "undefined") {
+			var resetBtn = addDdItem("Reset");
+			resetBtn.addEventListener("click", pendota.resetTagItemListener);
+		}
 
 		// Exists rule button
 		// Only applies to custom attributes
@@ -866,9 +872,12 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.addToBuildListener = function (e) {
 		var inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
 		var tB = document.getElementById(pendota.tagBuilderId);
+		var sizzlerInput = document.getElementById(pendota.sizzlerInputId);
 		
 		if (tB.dataset.freetextMode === "on") {
-			pendota.insertAtCursor(document.getElementById(pendota.sizzlerInputId), pendota.createCSSRule(inp.dataset.attr, inp.dataset.rawvalue));
+			pendota.insertAtCursor(sizzlerInput, pendota.createCSSRule(inp.dataset.attr, inp.dataset.rawvalue));
+			pendota.triggerEvent("input", sizzlerInput);
+			pendota.triggerEvent("change", sizzlerInput);
 		} else {
 			pendota.addToTagBuild(
 			pendota._pendota_elem_array_.length - 1,
@@ -1069,7 +1078,6 @@ if (!pendota._pendotaUIIsInjected) {
 		});
 		pendota.signalSizzlerUpdate();
 		document.getElementById(pendota.sizzlerBtnId).classList.add("_pendota-text-button-clicked_");
-		//document.getElementById(pendota.sizzlerIconId).dataset.feather = "stop-circle";
 		document.getElementById(pendota.sizzlerIconId).classList.add("_pendota-clicked_");
 		document.getElementById(pendota.sizzlerIconId).innerText = "STOP";
 		feather.replace();
@@ -1098,7 +1106,6 @@ if (!pendota._pendotaUIIsInjected) {
 			isActive: false,
 		});
 		document.getElementById(pendota.sizzlerBtnId).classList.remove("_pendota-text-button-clicked_");
-		//document.getElementById(pendota.sizzlerIconId).dataset.feather = "crosshair";
 		document.getElementById(pendota.sizzlerIconId).classList.remove("_pendota-clicked_");
 		document.getElementById(pendota.sizzlerIconId).innerText = "TEST";
 		feather.replace();
@@ -1124,19 +1131,19 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {string} newValue
 	 */
 	pendota.changeSizzlerValue = function (newValue) {
-		var inpEvent = new Event("input", {
-			bubbles: true,
-			cancelable: true,
-		});
-		var chgEvent = new Event("change", {
-			bubbles: true,
-			cancelable: true,
-		});
 		var sizzlerInput = document.getElementById(pendota.sizzlerInputId);
 		sizzlerInput.value = newValue.trim();
-		sizzlerInput.dispatchEvent(inpEvent);
-		sizzlerInput.dispatchEvent(chgEvent);
+		pendota.triggerEvent("input", sizzlerInput);
+		pendota.triggerEvent("change", sizzlerInput);
 	};
+
+	pendota.triggerEvent = function(type, target) {
+		var evt = new Event(type, {
+			bubbles: true,
+			cancelable: true,
+		});
+		target.dispatchEvent(evt);
+	}
 
 	/*
 	 * Sends a message to all frames to change the current sizzler selector to the value in the UI.
@@ -1157,8 +1164,8 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.addToSizzleCount = function (value) {
 		pendota.sizzleCount += value;
-		document.getElementById(pendota.sizzlerCountId).innerHTML =
-			"(" + pendota.sizzleCount + ")";
+		document.getElementById(pendota.sizzlerCountId).innerText =
+			pendota.sizzleCount;
 	};
 
 	/*
@@ -1217,6 +1224,11 @@ if (!pendota._pendotaUIIsInjected) {
 			})
 			.then(() => {
 				// Execute functions after appending UI
+
+				// avoid events bubbling out of tagging aid
+				pendota.listenersToBlock.forEach(function (ltype) {
+					document.querySelector('.' + pendota.wrapperClass).addEventListener(ltype, pendota.blockerFunction);
+				});
 
 				feather.replace(); // sets feather icons (e.g. lock icon)
 
@@ -1344,7 +1356,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendotaRemoveUI_ = function () {
 		pendota._pendota_isVisible_ = false;
 
-		$("._pendota-wrapper_").remove(); // Remove all html
+		$('.' + pendota.wrapperClass).remove(); // Remove all html
 
 		// Remove listeners
 		window.removeEventListener("message", pendota.lockSignalListener, true);

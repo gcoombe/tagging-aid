@@ -26,7 +26,6 @@ if (!pendota._pendotaIsInjected) {
     */    
 	pendota.nonTABlockerFunction = function(e) {
 		if (!pendota.someParentHasID(e.target, pendota.taggingAidId)) {
-			console.log('Blocked!');
 			pendota.blockerFunction(e);
 		}
 	}
@@ -49,6 +48,7 @@ if (!pendota._pendotaIsInjected) {
 	pendota.statusMessageId = "_pendota-status_";
 	pendota.outlineBoxClass = "_pendota-outline_";
 	pendota.exitImgContainerId = "_pendota_exit_img_container_";
+	pendota.changePollInterval;
 
     // collection of listener types to block outside the tagging aid.
 	pendota.listenersToBlock = ["submit", "change", "input", "focus", "click"];
@@ -395,6 +395,8 @@ if (!pendota._pendotaIsInjected) {
 		pendota.sizzleIsActive = true;
 		window.addEventListener("resize", pendota._pendota_highlight, true);
 		window.addEventListener("scroll", pendota._pendota_highlight, true);
+		window.addEventListener("click", pendota._pendota_highlight, true);
+		pendota.changePollInterval = window.setInterval(pendota._pendota_highlight, 2000);
 	}
 
     /*
@@ -404,6 +406,8 @@ if (!pendota._pendotaIsInjected) {
 		pendota.sizzleIsActive = false;
 		window.removeEventListener("resize", pendota._pendota_highlight, true);
 		window.removeEventListener("scroll", pendota._pendota_highlight, true);
+		window.removeEventListener("click", pendota._pendota_highlight, true);
+		window.clearInterval(pendota.changePollInterval);
 		pendota._pendota_remove_highlight();
 	}
 

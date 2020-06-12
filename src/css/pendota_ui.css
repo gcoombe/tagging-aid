@@ -202,7 +202,8 @@
 }
 
 ._pendota-wrapper_ #_pendota-sizzler-count_ {
-	font-size: 14px;
+	font-family: monospace;
+	font-size: 16px;
 	color: #222222;
 	line-height: 27px;
 	text-align: center;
@@ -240,6 +241,22 @@
 	width: 36px;
 }
 
+/* Raise "tactile" button 
+._pendota-wrapper_ ._pendota-text-button_ {
+	border: 1px solid gray;
+	border-bottom-width: 3px;
+	border-right-width: 3px;
+	border-radius: 3px 5px 5px 5px;
+	color: var(--pendo-charcoal);
+	cursor: pointer;
+	display: block;
+	height: 28px;
+	margin: 0 auto;
+	transition: all ease-in 0.1s;
+	text-align: center;
+	width: 36px;
+} */
+
 ._pendota-wrapper_ ._pendota-text-button_ * {
 	cursor: pointer;
 }
@@ -249,6 +266,15 @@
 	background-color: var(--pendo-pink);
 	color: white;
 }
+
+/* Raised "tactile" button
+._pendota-wrapper_ ._pendota-text-button_._pendota-text-button-clicked_ {
+	border: 1px solid gray;
+	border-top-width: 3px;
+	border-left-width: 3px;
+	border-radius: 5px 5px 3px 5px;
+	box-shadow: inset 1px 4px 7px -6px black;
+} */
 
 ._pendota-wrapper_ ._pendota-button_ > *:hover {
 	stroke: var(--pendo-charcoal);
@@ -273,7 +299,7 @@
 	display: inline-block;
 	font-size: 11px;
 	font-weight: bold;
-	line-height: 28px;
+	line-height: 25px;
 	padding-left: 1px;
 	text-align: center;
 	vertical-align: baseline;
@@ -302,6 +328,7 @@
 
 ._pendota-wrapper_ ._pendota-tag-item_ {
 	color: black;
+	cursor: pointer;
 	font-size: inherit;
 	display: inline-block;
 	position: relative;
@@ -316,6 +343,7 @@
 
 ._pendota-wrapper_ ._pendota-tag-item-text_ {
 	color: inherit;
+	cursor: pointer;
 	display: inline-block;
 	font-size: inherit;
 	max-width: 190px;
