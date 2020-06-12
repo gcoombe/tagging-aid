@@ -26,6 +26,7 @@ if (!pendota._pendotaIsInjected) {
     */    
 	pendota.nonTABlockerFunction = function(e) {
 		if (!pendota.someParentHasID(e.target, pendota.taggingAidId)) {
+			console.log('Blocked!');
 			pendota.blockerFunction(e);
 		}
 	}
@@ -45,6 +46,7 @@ if (!pendota._pendotaIsInjected) {
 	pendota.taggingAidId = "_pendota-tag-assistant_";
 	pendota.pendotaWrapperClass = "_pendota-wrapper_";
 	pendota.lockedIconClass = "_pendota-icon-locked_";
+	pendota.statusMessageId = "_pendota-status_";
 	pendota.outlineBoxClass = "_pendota-outline_";
 	pendota.exitImgContainerId = "_pendota_exit_img_container_";
 
@@ -322,7 +324,7 @@ if (!pendota._pendotaIsInjected) {
 		el = e.target;
 		if (pendota.someParentHasID(el, pendota.exitImgContainerId)) {
 			pendota.signalDeactivate();
-		} else if (pendota.someParentHasClass(el, pendota.lockedIconClass)) {
+		} else if (pendota.someParentHasID(el, pendota.statusMessageId)) {
 			pendota.signalLockSwitch(e, false);
 		} else if (!pendota.someParentHasID(el, pendota.taggingAidId) && pendota.scannerIsActive) {
 			// changed to not trigger unlock on body click
@@ -445,7 +447,7 @@ if (!pendota._pendotaIsInjected) {
 		var selector = pendota.sizzleSelector;
 		var updateId = pendota.lastSizzleHighlightId;
 		pendota._pendota_remove_highlight();
-		if (pendota.sizzleIsActive && selector > "") {
+		if (pendota.sizzleIsActive) {
 			try {
 				var selectedElms = $(selector);
 				var numMatch = 0;

@@ -24,6 +24,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagBuilderPlaceholderId = "_pendota-tag-builder-placeholder_";
 	pendota.tagElmClass = "_pendota-tag-elm_";
 	pendota.tagItemClass = "_pendota-tag-item_";
+	pendota.activeTagItemClass = "_pendota-active-tag-elm_";
 	pendota.tagItemTextClass = "_pendota-tag-item-text_";
 	pendota.tagItemDdClass = "_pendota-tag-item-dropdown_";
 	pendota.tagItemDdItemClass = "_pendota-tag-item-dd-item_";
@@ -139,8 +140,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.lockedState = function () {
 		// Locks the scanner and UI
-		document.getElementById("_pendota_lock-message_").innerText = "Click the lock button to Unlock.";
-		//stopMouseover();
+		document.getElementById("_pendota_lock-message_").innerHTML = "Build a tag! (Click the lock to pick a new feature)";
 		$("#_pendota-lock-icon_").html(
 			'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
 		);
@@ -177,7 +177,7 @@ if (!pendota._pendotaUIIsInjected) {
 		feather.replace();
 
 		// Set a status text letting the user the targeting is ready
-		document.getElementById("_pendota_lock-message_").innerText = "Click anywhere to Lock.";
+		document.getElementById("_pendota_lock-message_").innerText = "Click any feature to select it.";
 		pendota._pendota_isLocked_ = false;
 		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
@@ -205,8 +205,6 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {event} e
 	 */
 	pendota.copyListener = function (e) {
-		e.stopPropagation();
-		e.preventDefault();
 		inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
 		pendota.copyToClipboard(inp);
 	};
@@ -216,8 +214,6 @@ if (!pendota._pendotaUIIsInjected) {
 	* @param {event} e
 	*/
 	pendota.tagBuildCopyListener = function(e) {
-		e.stopPropagation();
-		e.preventDefault();
 		var stayHidden = document.getElementById(pendota.sizzlerInputFormId).classList.contains(pendota.hiddenClass);
 		pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 		pendota.copyToClipboard(document.getElementById(pendota.sizzlerInputId));
@@ -229,8 +225,6 @@ if (!pendota._pendotaUIIsInjected) {
 	* @param {event} e
 	*/
 	pendota.tagBuildFreetextListener = function(e) {
-		e.stopPropagation();
-		e.preventDefault();
 		var tB = document.getElementById(pendota.tagBuilderId);
 		if (tB.dataset.freetextMode === "on") {
 			pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
@@ -239,6 +233,7 @@ if (!pendota._pendotaUIIsInjected) {
 			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "type";
 			feather.replace();
 			tB.dataset.freetextMode = "off";
+			pendota.updateAutoTag();
 			pendota.checkAddBtnsEligibility();
 		} else {
 			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
@@ -371,7 +366,17 @@ if (!pendota._pendotaUIIsInjected) {
 		pendota.updateAutoTag();
 	};
 
-
+	pendota.highlightActiveElm = function() {
+		var activeTier = pendota._pendota_elem_array_.length - 1;
+		for (var i = 0; i < pendota.tagBuild.length; i++) {
+			var thisElm = document.querySelector(`[data-build-index="${i}"`);
+			if (pendota.tagBuild[i].tier === activeTier) {
+				thisElm.classList.add(pendota.activeTagItemClass);
+			} else {
+				thisElm.classList.remove(pendota.activeTagItemClass);
+			}
+		}
+	}
 
 	/*
 	 * Removes an item from the tag build
@@ -398,6 +403,7 @@ if (!pendota._pendotaUIIsInjected) {
 		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
 			if (!isLocked) pendota.hide(addBtns[i])
+			else if (addBtns[i].closest())
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
 		}
@@ -524,6 +530,7 @@ if (!pendota._pendotaUIIsInjected) {
 		});
 		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
+		pendota.highlightActiveElm();
 	};
 
 	/*
@@ -659,7 +666,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var beginsBtn = addDdItem("Begins with");
 			var beginsInpDiv = addDdItemInput(beginsBtn);
 			beginsInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
-				pendota.setTagBuildRuleFromEvent(e, {type: "beginsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
+				pendota.setTagBuildRuleFromEvent(e, {type: "beginsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value.trim()});
 			})
 			
 		}
@@ -669,7 +676,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var includesBtn = addDdItem("Includes");
 			var includesInpDiv = addDdItemInput(includesBtn);
 			includesInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
-				pendota.setTagBuildRuleFromEvent(e, {type: "includes", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
+				pendota.setTagBuildRuleFromEvent(e, {type: "includes", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value.trim()});
 			})
 			
 		}
@@ -680,7 +687,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var endsBtn = addDdItem("Ends with");
 			var endsInpDiv = addDdItemInput(endsBtn);
 			endsInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
-				pendota.setTagBuildRuleFromEvent(e, {type: "endsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
+				pendota.setTagBuildRuleFromEvent(e, {type: "endsWith", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value.trim()});
 			})
 			
 		}
@@ -690,7 +697,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var containsBtn = addDdItem("Contains");
 			var containsInpDiv = addDdItemInput(containsBtn);
 			containsInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
-				pendota.setTagBuildRuleFromEvent(e, {type: "contains", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value});
+				pendota.setTagBuildRuleFromEvent(e, {type: "contains", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value.trim()});
 			})
 		}
 
@@ -754,7 +761,7 @@ if (!pendota._pendotaUIIsInjected) {
 				inpField.value = elm.closest('.' + pendota.tagItemClass).querySelector('.' + pendota.tagItemTextClass).textContent;
 			}
 			inpDiv.classList.add(pendota.ddShowClass);
-			inpField.setSelectionRange(0,0);
+			inpField.selectionStart = inpField.selectionEnd = inpField.value.length;
 			inpField.focus();
 		}
 	}
@@ -858,8 +865,6 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {event} e
 	 */
 	pendota.addToBuildListener = function (e) {
-		e.stopPropagation();
-		e.preventDefault();
 		var inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
 		var tB = document.getElementById(pendota.tagBuilderId);
 		
@@ -948,6 +953,7 @@ if (!pendota._pendotaUIIsInjected) {
 			plusBtn.classList.add("_pendota-button_");
 			plusBtn.setAttribute("title", "Add to tag");
 			plusBtn.setAttribute("href","javascript:void(0);");
+			plusBtn.setAttribute("no-drag","");
 			var plusIcon = document.createElement('i');
 			plusIcon.classList.add("_pendota-addtobuild-icon_");
 			plusIcon.classList.add("_pendota-button-icon_");
@@ -961,6 +967,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var copyBtn = document.createElement('a');
 			copyBtn.classList.add(pendota.copyBtnClass);
 			copyBtn.classList.add("_pendota-button_");
+			copyBtn.setAttribute("no-drag","");
 			copyBtn.setAttribute("title", "Add to tag");
 			copyBtn.setAttribute("href","javascript:void(0);");
 			var copyIcon = document.createElement('i');
@@ -1047,6 +1054,7 @@ if (!pendota._pendotaUIIsInjected) {
 
 		// Define the copy and add functions for all icons
 		feather.replace();
+		pendota.highlightActiveElm();
 		pendota.checkAddBtnsEligibility();
 		pendota.applyCopyFunction();
 		pendota.applyAddFunction();
@@ -1061,8 +1069,10 @@ if (!pendota._pendotaUIIsInjected) {
 			isActive: true,
 		});
 		pendota.signalSizzlerUpdate();
-		document.getElementById(pendota.sizzlerIconId).dataset.feather = "stop-circle";
+		document.getElementById(pendota.sizzlerBtnId).classList.add("_pendota-text-button-clicked_");
+		//document.getElementById(pendota.sizzlerIconId).dataset.feather = "stop-circle";
 		document.getElementById(pendota.sizzlerIconId).classList.add("_pendota-clicked_");
+		document.getElementById(pendota.sizzlerIconId).innerText = "STOP";
 		feather.replace();
 		document
 			.getElementById(pendota.sizzlerInputId)
@@ -1088,10 +1098,12 @@ if (!pendota._pendotaUIIsInjected) {
 			type: "SIZZLE_SWITCH",
 			isActive: false,
 		});
-		document.getElementById(pendota.sizzlerIconId).dataset.feather = "play-circle";
+		document.getElementById(pendota.sizzlerBtnId).classList.remove("_pendota-text-button-clicked_");
+		//document.getElementById(pendota.sizzlerIconId).dataset.feather = "crosshair";
 		document.getElementById(pendota.sizzlerIconId).classList.remove("_pendota-clicked_");
+		document.getElementById(pendota.sizzlerIconId).innerText = "TEST";
 		feather.replace();
-		$("#" + pendota.sizzlerCountId).html("--");
+		$("#" + pendota.sizzlerCountId).html("");
 		document
 			.getElementById(pendota.sizzlerInputId)
 			.removeEventListener("input", pendota.signalSizzlerUpdate);

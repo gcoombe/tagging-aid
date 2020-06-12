@@ -88,9 +88,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
 		function launchDesigner() {
 			// Deactivate tagging aid if running
-			chrome.tabs.executeScript({
+			/* chrome.tabs.executeScript({
 				file: "./src/scripts/deactivatePendota.js",
-			});
+			}); */
 
 			// launch the Pendo designer
 			chrome.tabs.executeScript({
