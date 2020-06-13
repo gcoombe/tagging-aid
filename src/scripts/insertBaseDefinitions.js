@@ -53,6 +53,34 @@ if (!pendota._pendotaIsInjected) {
     // collection of listener types to block outside the tagging aid.
 	pendota.listenersToBlock = ["submit", "change", "input", "focus", "click"];
 
+	/*
+	* Returns the index of the iframe in the parent document,
+	*  or -1 if we are the topmost document
+	* https://stackoverflow.com/questions/26010355/is-there-a-way-to-uniquely-identify-an-iframe-that-the-content-script-runs-in-fo
+	*/
+	pendota.iframeIndex = function(win) {
+		win = win || window; // Assume self by default
+		if (win.parent != win) {
+		for (var i = 0; i < win.parent.frames.length; i++) {
+			if (win.parent.frames[i] == win) { return i; }
+		}
+		throw Error("In a frame, but could not find myself");
+		} else {
+			return -1;
+		}
+	}
+
+	/* 
+	* Returns a unique index relative to all iframes on the page, or 0 if topmost
+	*/
+	pendota.iframeFullIndex = function(win) {
+		win = win || window; // Assume self by default
+		if (pendota.iframeIndex(win) < 0) return "0";
+		else return pendota.iframeFullIndex(win.parent) + "." + pendota.iframeIndex(win);
+	}
+
+	pendota.iframeFullIndexVal = pendota.iframeFullIndex();
+
     /*
     * Loops through the designated listeners to block and blocks them all if outside the tagging aid UI.
     */
@@ -479,7 +507,7 @@ if (!pendota._pendotaIsInjected) {
 				numMatch = 0;
 			}
 			if (pendota.lastSizzleHighlightId > 0) {
-				pendota.sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, count: numMatch});
+				pendota.sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, sourceFrame: pendota.iframeFullIndexVal, count: numMatch});
 				pendota.lastSizzleHighlightId = 0; // don't send duplicate counts on resize / scroll
 			}
 		}

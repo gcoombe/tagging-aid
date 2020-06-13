@@ -15,6 +15,7 @@
 	--pendo-mid-pink-40: #eb8da766;
 	--pendo-charcoal: #2f3641;
 	--light-gray: #aaaaaa;
+	--very-light-gray: #f8f8f9;
 	--light-pink: #f0ccd6;
 	background: none;
 	border: none;
@@ -70,11 +71,12 @@
 }
 
 ._pendota-wrapper_ ._pendota_container_ {
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.17);
 	overflow-y: auto;
 	min-height: 450px;
 	max-width: 350px;
 	width: 350px;
-	border: 2px solid rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(0, 0, 0, 0.3);
 	border-radius: 3px;
 	background: white;
 	padding: 10px 20px;
@@ -162,7 +164,7 @@
 	/* avoid an excessively wide status text */
 	display: inline-block;
 	font-size: 12px;
-	font-weight: bold;
+	font-weight: 500;
 	margin: auto;
 	min-height: 32px;
 	padding-left: 5px;
@@ -431,7 +433,7 @@
 }
 
 ._pendota-wrapper_ ._pendota-tag-item-dd-item_:hover {
-	background-color: #f1f1f1;
+	background-color: var(--very-light-gray);
 	color: black;
 	padding-left: 8px;
 	padding-right: 14px;
@@ -498,9 +500,10 @@
 }
 
 ._pendota-wrapper_ #_pendota-sizzler_ {
-	background: #fff;
+	background: white;
 	border: 1px solid #ccc;
 	border-radius: 3px;
+	line-height: 1rem;
     margin: 0 auto;
     min-height: 63px;
 }

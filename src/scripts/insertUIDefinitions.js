@@ -63,7 +63,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendota_isVisible_ = false;
 	pendota._pendota_isLocked_ = false;
 	pendota.lastSizzleId;
-	pendota.sizzleCount;
+	pendota.sizzleCountObj = {};
 
 	/*
 	* Removes the hidden class from the element
@@ -232,7 +232,7 @@ if (!pendota._pendotaUIIsInjected) {
 		if (pendota.isFreetextMode()) {
 			pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.show(document.getElementById(pendota.tagBuilderNonFreetextId));
-			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Free text");
+			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "FreeType mode");
 			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "type";
 			feather.replace();
 			tB.dataset.freetextMode = "off";
@@ -243,7 +243,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var inpField = document.getElementById(pendota.sizzlerInputId);
 			inpField.selectionStart = inpField.selectionEnd = inpField.value.length;
 			inpField.focus();
-			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Tag builder");
+			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Builder mode");
 			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "layers";
 			feather.replace();
 			tB.dataset.freetextMode = "on";
@@ -604,11 +604,13 @@ if (!pendota._pendotaUIIsInjected) {
 				buildObj.type.rule
 			);
 			typeSpan.dataset.isType = "";
+			typeSpan.dataset.attr = "type";
 		}
 
 		if (buildObj.hasOwnProperty("id")) {
 			let idSpan = repeatSteps("id", buildObj.id.value, buildObj.id.rule);
 			idSpan.dataset.isId = "";
+			idSpan.dataset.attr = "id";
 		}
 
 		if (buildObj.hasOwnProperty("items")) {
@@ -621,6 +623,7 @@ if (!pendota._pendotaUIIsInjected) {
 					item.rule
 				);
 				itemSpan.dataset.itemIndex = i;
+				itemSpan.dataset.attr = item.attribute;
 			}
 		}
 
@@ -664,6 +667,7 @@ if (!pendota._pendotaUIIsInjected) {
 			anchorItem.appendChild(inpDiv);
 			anchorItem.classList.add("_pendota-has-side-input_");
 			anchorItem.addEventListener("click", pendota.showDdInpField);
+			//anchorItem.addEventListener("mouseenter", pendota.showDdInpField);
 			return inpDiv;
 		};
 
@@ -699,8 +703,7 @@ if (!pendota._pendotaUIIsInjected) {
 			var includesInpDiv = addDdItemInput(includesBtn);
 			includesInpDiv.querySelector('.' + pendota.tagItemDdInpSubmitClass).addEventListener("click", function(e) {
 				pendota.setTagBuildRuleFromEvent(e, {type: "includes", value: e.target.parentNode.querySelector('.' + pendota.tagItemDdInpClass).value.trim()});
-			})
-			
+			});
 		}
 
 		// Ends with rule button
@@ -1171,7 +1174,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 * Sends a message to all frames to change the current sizzler selector to the value in the UI.
 	 */
 	pendota.signalSizzlerUpdate = function () {
-		pendota.sizzleCount = 0;
+		pendota.sizzleCountObj = {};
 		pendota.lastSizzleId = pendota.fiveDigitId();
 		pendota.sendMessageToAllFrames(window, {
 			type: "SIZZLE_UPDATE",
@@ -1184,10 +1187,15 @@ if (!pendota._pendotaUIIsInjected) {
 	 * As count updates come in, builds a count of Sizzler matches in every frame.
 	 * @param {int} value
 	 */
-	pendota.addToSizzleCount = function (value) {
-		pendota.sizzleCount += value;
+	pendota.addToSizzleCount = function (value, srcFrame) {
+		pendota.sizzleCountObj[srcFrame] = value;
+		var sizzleCount = 0;
+		var sizzleVals = Object.values(pendota.sizzleCountObj);
+		for (var i = 0; i < sizzleVals.length; i++) {
+			sizzleCount += parseInt(sizzleVals[i]);
+		}
 		document.getElementById(pendota.sizzlerCountId).innerText =
-			pendota.sizzleCount;
+			sizzleCount;
 	};
 
 	/*
@@ -1200,9 +1208,10 @@ if (!pendota._pendotaUIIsInjected) {
 			if (
 				typeof data.type !== "undefined" &&
 				data.type == "SIZZLE_COUNT" &&
+				typeof data.sourceFrame !== "undefined" &&
 				data.updateId == pendota.lastSizzleId
 			) {
-				pendota.addToSizzleCount(parseInt(data.count));
+				pendota.addToSizzleCount(parseInt(data.count), data.sourceFrame);
 			}
 		}
 	};
