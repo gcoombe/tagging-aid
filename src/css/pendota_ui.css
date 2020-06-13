@@ -94,6 +94,8 @@
 	display: block;
 	height: 32px;
 	margin: 0 auto;
+	position: relative;
+	stroke: var(--light-gray);
 	width: 32px;
 	width: fit-content;
 /* 	vertical-align: middle; */
@@ -101,20 +103,37 @@
 
 ._pendota-wrapper_ ._pendota-feather-locked_,
 ._pendota-wrapper_ ._pendota-feather-unlocked_ {
+	stroke: inherit;
 	height: 32px;
 	width: 32px;
 }
 
-._pendota-wrapper_ ._pendota-feather-locked_ {
+._pendota-wrapper_ ._pendota-icon-locked_ * {
+	color: inherit;
+	cursor: pointer;
+	stroke: inherit;
+}
+
+._pendota-wrapper_ #_pendota-lock-icon_._pendota-icon-locked_ {
+	color: var(--pendo-charcoal);
 	stroke: var(--pendo-charcoal);
 }
 
-._pendota-wrapper_ ._pendota-feather-locked_:hover {
+._pendota-wrapper_ #_pendota-lock-icon_._pendota-icon-locked_:hover {
+	color: var(--light-gray);
 	stroke: var(--light-gray);
 }
 
-._pendota-wrapper_ ._pendota-icon-locked_ * {
+._pendota-wrapper_ ._pendota-icon-locked_:after {
+	content: "Click to pick a new feature";
 	cursor: pointer;
+	font-size: 10px;
+	font-weight: 500;
+	height: 100%;
+	line-height: 32px;
+	position: absolute;
+	left: 110%;
+	width: 150px;
 }
 
 ._pendota-wrapper_ ._pendota-feather-unlocked_ {
@@ -143,7 +162,7 @@
 	/* avoid an excessively wide status text */
 	display: inline-block;
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: bold;
 	margin: auto;
 	min-height: 32px;
 	padding-left: 5px;
@@ -219,6 +238,40 @@
 	font-size: 12px;
 	margin-right: 8px;
 	min-height: 65px;
+	position: relative;
+}
+
+._pendota-wrapper_ #_pendota-tag-builder-clear-btn_ {
+	height: 12px;
+	margin: 0;
+	opacity: 0;
+	padding: 0;
+	pointer-events: none;
+	position: absolute;
+	top: 3px;
+	transition: opacity ease-out .25s, right ease-in .4s;
+	right: -4px;
+	width: 12px;
+}
+
+._pendota-wrapper_ #_pendota-tag-builder-clear-btn_ * {
+	stroke: gray;
+}
+
+._pendota-wrapper_ #_pendota-tag-builder-clear-btn_:hover * {
+	stroke: var(--pendo-charcoal);
+}
+
+._pendota-wrapper_ #_pendota-tag-builder_:hover #_pendota-tag-builder-clear-btn_ {
+	opacity: 100;
+	pointer-events: all;
+	transition: opacity ease-in .4s, right ease-out 0.3s;
+	right: 4px;
+}
+
+._pendota-wrapper_ #_pendota-tag-builder-clear-icon_ {
+	height: 100%;
+	width: 100%;
 }
 
 ._pendota-wrapper_ ._pendota-button_ {
@@ -226,6 +279,7 @@
 	display: block;
 	height: 20px;
 	margin: 4px auto;
+	stroke: var(--light-gray);
 	width: 20px;
 }
 
@@ -276,15 +330,12 @@
 	box-shadow: inset 1px 4px 7px -6px black;
 } */
 
-._pendota-wrapper_ ._pendota-button_ > *:hover {
+._pendota-wrapper_ ._pendota-button_:hover {
 	stroke: var(--pendo-charcoal);
 }
 
-._pendota-wrapper_ ._pendota-button_ > * {
-	stroke: var(--light-gray);
-}
-
 ._pendota-wrapper_ ._pendota-button_ * {
+	stroke: inherit;
 	cursor: pointer;
 }
 

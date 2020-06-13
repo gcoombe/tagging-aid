@@ -9,6 +9,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.wrapperClass = "_pendota-wrapper_";
 	pendota.hiddenClass = "_pendota-hidden_";
 	pendota.ddShowClass = "_pendota-dropdown-show_";
+	pendota.statusMessageId = "_pendota_lock-message_";
 	pendota.sizzlerInputFormId = "_pendota-sizzler-form_";
 	pendota.sizzlerInputId = "_pendota-sizzler_";
 	pendota.sizzlerBtnId = "_pendota-sizzler-btn_";
@@ -23,6 +24,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.tagBuilderId = "_pendota-tag-builder_";
 	pendota.tagBuilderNonFreetextId = "_pendota-tag-builder-non-freetext_";
 	pendota.tagBuilderPlaceholderId = "_pendota-tag-builder-placeholder_";
+	pendota.tagBuilderClearBtnId = "_pendota-tag-builder-clear-btn_";
 	pendota.tagElmClass = "_pendota-tag-elm_";
 	pendota.tagItemClass = "_pendota-tag-item_";
 	pendota.activeTagItemClass = "_pendota-active-tag-elm_";
@@ -136,14 +138,17 @@ if (!pendota._pendotaUIIsInjected) {
 		}
 	};
 
+	pendota.setLockMessage = function(newMsg) {
+		document.getElementById(pendota.statusMessageId).innerHTML = newMsg;
+	}
+
 	/*
 	 * Forces UI to locked state. Is idempotent.
 	 */
 	pendota.lockedState = function () {
 		// Locks the scanner and UI
-		document.getElementById("_pendota_lock-message_").innerHTML = "Build a tag or click the lock to pick a new feature.";
 		$("#_pendota-lock-icon_").html(
-			'<i class="_pendota-feather-locked_" data-feather="lock"></i>'
+			'<i class="_pendota-feather-locked_" data-feather="crosshair"></i>'
 		);
 		$("#_pendota-lock-icon_").addClass("_pendota-icon-locked_");
 		$("#_pendota-parent-up_").removeClass("_pendota-hide-arrow_");
@@ -159,8 +164,7 @@ if (!pendota._pendotaUIIsInjected) {
 			"_pendota-parent-arrow_ _pendota-disabled-arrow_"
 		);
 		pendota._pendota_isLocked_ = true;
-		pendota.checkPlaceholderEligibility();
-		pendota.checkAddBtnsEligibility();
+		pendota.updateAutoTag();
 	};
 
 	/*
@@ -170,7 +174,7 @@ if (!pendota._pendotaUIIsInjected) {
 		// if already locked, unlocks instead
 		// Set the lock icon to starting "unlocked" state
 		$("#_pendota-lock-icon_").html(
-			'<i class="_pendota-feather-unlocked_" data-feather="unlock"></i>'
+			'<i class="_pendota-feather-unlocked_" data-feather="crosshair"></i>'
 		);
 		$("#_pendota-lock-icon_").removeClass("_pendota-icon-locked_");
 		$("#_pendota-parent-up_").addClass("_pendota-hide-arrow_");
@@ -178,10 +182,8 @@ if (!pendota._pendotaUIIsInjected) {
 		feather.replace();
 
 		// Set a status text letting the user the targeting is ready
-		document.getElementById("_pendota_lock-message_").innerText = "Click any feature to select it.";
 		pendota._pendota_isLocked_ = false;
-		pendota.checkPlaceholderEligibility();
-		pendota.checkAddBtnsEligibility();
+		pendota.updateAutoTag();
 	};
 
 	/*
@@ -227,7 +229,7 @@ if (!pendota._pendotaUIIsInjected) {
 	*/
 	pendota.tagBuildFreetextListener = function(e) {
 		var tB = document.getElementById(pendota.tagBuilderId);
-		if (tB.dataset.freetextMode === "on") {
+		if (pendota.isFreetextMode()) {
 			pendota.hide(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.show(document.getElementById(pendota.tagBuilderNonFreetextId));
 			document.getElementById(pendota.tagBuilderFreetextBtnId).setAttribute("title", "Free text");
@@ -235,7 +237,6 @@ if (!pendota._pendotaUIIsInjected) {
 			feather.replace();
 			tB.dataset.freetextMode = "off";
 			pendota.updateAutoTag();
-			pendota.checkAddBtnsEligibility();
 		} else {
 			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.hide(document.getElementById(pendota.tagBuilderNonFreetextId));
@@ -246,7 +247,7 @@ if (!pendota._pendotaUIIsInjected) {
 			document.getElementById(pendota.tagBuilderFreetextIconId).dataset.feather = "layers";
 			feather.replace();
 			tB.dataset.freetextMode = "on";
-			pendota.checkAddBtnsEligibility();
+			pendota.updateAutoTag();
 		}
 	}
 
@@ -400,7 +401,7 @@ if (!pendota._pendotaUIIsInjected) {
 
 	pendota.checkAddBtnsEligibility = function() {
 		var addBtns = document.getElementsByClassName(pendota.addToBuildBtnClass);
-		var freeTextMode = (document.getElementById(pendota.tagBuilderId).dataset.freetextMode === "on" ? true : false);
+		var freeTextMode = pendota.isFreetextMode();
 		var isLocked = pendota._pendota_isLocked_;
 		for (var i = 0; i < addBtns.length; i++) {
 			var inp = addBtns[i].closest('tr').querySelector('.' + pendota.uiItemInputClass);
@@ -531,6 +532,8 @@ if (!pendota._pendotaUIIsInjected) {
 				e.target.closest("." + pendota.tagItemClass)
 			);
 		});
+		pendota.setGuidanceMessage();
+		pendota.checkTagClearEligibility();
 		pendota.checkPlaceholderEligibility();
 		pendota.checkAddBtnsEligibility();
 		pendota.highlightActiveElm();
@@ -541,10 +544,15 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.clearAutoTag = function () {
 		pendota.tagBuild = [];
-		pendota.checkPlaceholderEligibility();
-		document.getElementById(pendota.autoTagsId).innerHTML = "";
-		pendota.changeSizzlerValue(" ");
+		pendota.updateAutoTag();
 	};
+
+	pendota.setGuidanceMessage = function() {
+		if (!pendota._pendota_isLocked_) pendota.setLockMessage("Click any feature to select it");
+		else if (pendota.isFreetextMode()) pendota.setLockMessage("Power User - FreeType Mode");
+		else if (pendota.tagBuild.length > 0) pendota.setLockMessage("You can edit tag items by clicking on them");
+		else pendota.setLockMessage("Now build a tag using the [+] buttons!")
+	}
 
 	pendota.checkPlaceholderEligibility = function() {
 		var isLocked = pendota._pendota_isLocked_;
@@ -553,6 +561,13 @@ if (!pendota._pendotaUIIsInjected) {
 		} else {
 			pendota.hide(document.getElementById(pendota.tagBuilderPlaceholderId));
 		}
+	}
+
+	pendota.checkTagClearEligibility = function() {
+		var szlInp = document.getElementById(pendota.sizzlerInputId);
+		var clrBtn = document.getElementById(pendota.tagBuilderClearBtnId);
+		if (szlInp.value.length) pendota.show(clrBtn);
+		else pendota.hide(clrBtn);
 	}
 
 	/*
@@ -634,6 +649,8 @@ if (!pendota._pendotaUIIsInjected) {
 			if (useRawVal) inpDiv.dataset.useRawVal = "";
 			var inp = document.createElement("textarea");
 			inp.classList.add(pendota.tagItemDdInpClass);
+			inp.setAttribute("spellcheck", "false");
+			inp.setAttribute("autocomplete","off");
 			var inpSubmit = document.createElement("button");
 			inpSubmit.classList.add(pendota.tagItemDdInpSubmitClass);
 			inpSubmit.innerText = "✓";
@@ -865,16 +882,21 @@ if (!pendota._pendotaUIIsInjected) {
 			.concat(inArray.slice(index));
 	};
 
+	pendota.isFreetextMode = function() {
+		var tB = document.getElementById(pendota.tagBuilderId);
+		if (tB.dataset.freetextMode === "on") return true;
+		else return false;
+	}
+
 	/*
 	 * The listener function that adds a value to the tag build
 	 * @param {event} e
 	 */
 	pendota.addToBuildListener = function (e) {
 		var inp = e.target.closest('tr').querySelector('.' + pendota.uiItemInputClass);
-		var tB = document.getElementById(pendota.tagBuilderId);
 		var sizzlerInput = document.getElementById(pendota.sizzlerInputId);
 		
-		if (tB.dataset.freetextMode === "on") {
+		if (pendota.isFreetextMode()) {
 			pendota.insertAtCursor(sizzlerInput, pendota.createCSSRule(inp.dataset.attr, inp.dataset.rawvalue));
 			pendota.triggerEvent("input", sizzlerInput);
 			pendota.triggerEvent("change", sizzlerInput);
@@ -1062,8 +1084,8 @@ if (!pendota._pendotaUIIsInjected) {
 
 		// Define the copy and add functions for all icons
 		feather.replace();
+		pendota.updateAutoTag();
 		pendota.highlightActiveElm();
-		pendota.checkAddBtnsEligibility();
 		pendota.applyCopyFunction();
 		pendota.applyAddFunction();
 	};
@@ -1262,6 +1284,7 @@ if (!pendota._pendotaUIIsInjected) {
 				// Set the tag builder button functions
 				document.getElementById(pendota.tagBuilderCopyBtnId).addEventListener("click", pendota.tagBuildCopyListener);
 				document.getElementById(pendota.tagBuilderFreetextBtnId).addEventListener("click", pendota.tagBuildFreetextListener);
+				document.getElementById(pendota.tagBuilderClearBtnId).addEventListener("click", pendota.clearAutoTag);
 
 				// Sets the onclick function for the parent tree traversal upwards
 				document
@@ -1357,6 +1380,9 @@ if (!pendota._pendotaUIIsInjected) {
 		pendota._pendota_isVisible_ = false;
 
 		$('.' + pendota.wrapperClass).remove(); // Remove all html
+
+		pendota._pendota_elem_array_ = [];
+		pendota.clearAutoTag();
 
 		// Remove listeners
 		window.removeEventListener("message", pendota.lockSignalListener, true);
