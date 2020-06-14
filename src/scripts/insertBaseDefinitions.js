@@ -648,7 +648,6 @@ if (!pendota._pendotaIsInjected) {
 			pendota.stopMouseover();
 			$("." + pendota.outlineBoxClass).remove(); // Remove the outline
 			pendota._pendotaDeactivateHighlight() // Remove the sizzler if active
-
 			// Remove UI if present
 			if (typeof pendota._pendotaRemoveUI_ !== "undefined") pendota._pendotaRemoveUI_();
 

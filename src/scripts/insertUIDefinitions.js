@@ -512,31 +512,33 @@ if (!pendota._pendotaUIIsInjected) {
 	 * Checks the current tag build and updates the auto-built tag and free-text tag to reflect it
 	 */
 	pendota.updateAutoTag = function () {
-		var fullTag = document.createElement("div");
-		var rawFullTag = "";
-		for (var o = 0; o < pendota.tagBuild.length; o++) {
-			var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
-			var tmpSpan = nextElm["htmlTagOut"];
-			tmpSpan.classList.add("_pendota-tag-elm_");
-			tmpSpan.dataset.buildIndex = o;
-			tmpSpan.title = nextElm["tagOut"];
-			rawFullTag += " " + nextElm["tagOut"];
-			fullTag.appendChild(tmpSpan);
+		if (document.getElementById(pendota.autoTagsId)) {
+			var fullTag = document.createElement("div");
+			var rawFullTag = "";
+			for (var o = 0; o < pendota.tagBuild.length; o++) {
+				var nextElm = pendota.convertObjToTag(pendota.tagBuild[o]);
+				var tmpSpan = nextElm["htmlTagOut"];
+				tmpSpan.classList.add("_pendota-tag-elm_");
+				tmpSpan.dataset.buildIndex = o;
+				tmpSpan.title = nextElm["tagOut"];
+				rawFullTag += " " + nextElm["tagOut"];
+				fullTag.appendChild(tmpSpan);
+			}
+			document.getElementById(pendota.autoTagsId).innerHTML = "";
+			document.getElementById(pendota.autoTagsId).appendChild(fullTag);
+			rawFullTag = rawFullTag.trim();
+			pendota.changeSizzlerValue(rawFullTag);
+			$("." + pendota.tagItemTextClass).on("click", function (e) {
+				pendota.displayTagItemDropdown(
+					e.target.closest("." + pendota.tagItemClass)
+				);
+			});
+			pendota.setGuidanceMessage();
+			pendota.checkTagClearEligibility();
+			pendota.checkPlaceholderEligibility();
+			pendota.checkAddBtnsEligibility();
+			pendota.highlightActiveElm();
 		}
-		document.getElementById(pendota.autoTagsId).innerHTML = "";
-		document.getElementById(pendota.autoTagsId).appendChild(fullTag);
-		rawFullTag = rawFullTag.trim();
-		pendota.changeSizzlerValue(rawFullTag);
-		$("." + pendota.tagItemTextClass).on("click", function (e) {
-			pendota.displayTagItemDropdown(
-				e.target.closest("." + pendota.tagItemClass)
-			);
-		});
-		pendota.setGuidanceMessage();
-		pendota.checkTagClearEligibility();
-		pendota.checkPlaceholderEligibility();
-		pendota.checkAddBtnsEligibility();
-		pendota.highlightActiveElm();
 	};
 
 	/*
@@ -550,7 +552,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota.setGuidanceMessage = function() {
 		if (!pendota._pendota_isLocked_) pendota.setLockMessage("Click any feature to select it");
 		else if (pendota.isFreetextMode()) pendota.setLockMessage("Power User - FreeType Mode");
-		else if (pendota.tagBuild.length > 0) pendota.setLockMessage("You can edit tag items by clicking on them");
+		else if (pendota.tagBuild.length > 0) pendota.setLockMessage("You can edit pink tag items by clicking on them");
 		else pendota.setLockMessage("Now build a tag using the [+] buttons!")
 	}
 
@@ -1257,9 +1259,9 @@ if (!pendota._pendotaUIIsInjected) {
 				// Execute functions after appending UI
 
 				// avoid events bubbling out of tagging aid
-				pendota.listenersToBlock.forEach(function (ltype) {
+ 				pendota.listenersToBlock.forEach(function (ltype) {
 					document.querySelector('.' + pendota.wrapperClass).addEventListener(ltype, pendota.blockerFunction);
-				});
+				}); 
 
 				feather.replace(); // sets feather icons (e.g. lock icon)
 
