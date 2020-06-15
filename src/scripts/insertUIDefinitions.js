@@ -288,7 +288,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 * @param {string}	value
 	 */
 	pendota.addToTagBuild = function (tier, attribute, value) {
-		if (typeof value == "undefined" || value == "") return; //No empty values
+		if ((typeof value == "undefined" || value == "" ) && ["contains", "type", "id", "class"].includes(attribute)) return; // No empty values for non-custom attributes
 		pendota.isFirstLock = false;
 		if (["type", "id"].includes(attribute)) {
 			var newVal = { tier: tier, items: [] };
@@ -409,7 +409,7 @@ if (!pendota._pendotaUIIsInjected) {
 		for (var i = 0; i < addBtns.length; i++) {
 			var inp = addBtns[i].closest('tr').querySelector('.' + pendota.uiItemInputClass);
 			if (!isLocked) pendota.hide(addBtns[i]);
-			else if (inp.dataset.rawvalue === "") pendota.hide(addBtns[i]);
+			else if (inp.dataset.rawvalue === "" && ["contains", "id", "class"].includes(inp.dataset.attr)) pendota.hide(addBtns[i]);
 			else if (freeTextMode) pendota.show(addBtns[i]);
 			else if (!!addBtns[i].closest('#' + pendota.uiTextBlockId) && !pendota.checkContainsRuleEligibility()) pendota.hide(addBtns[i])
 			else pendota.show(addBtns[i]);
