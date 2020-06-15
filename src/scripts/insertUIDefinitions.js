@@ -566,6 +566,7 @@ if (!pendota._pendotaUIIsInjected) {
 	}
 
 	pendota.checkTagClearEligibility = function() {
+		console.log('Checking clear button...');
 		var szlInp = document.getElementById(pendota.sizzlerInputId);
 		var clrBtn = document.getElementById(pendota.tagBuilderClearBtnId);
 		if (szlInp.value.length) pendota.show(clrBtn);
@@ -904,7 +905,7 @@ if (!pendota._pendotaUIIsInjected) {
 		if (pendota.isFreetextMode()) {
 			pendota.insertAtCursor(sizzlerInput, pendota.createCSSRule(inp.dataset.attr, inp.dataset.rawvalue));
 			pendota.triggerEvent("input", sizzlerInput);
-			pendota.triggerEvent("change", sizzlerInput);
+			document.getElementById(pendota.sizzlerInputId).focus();
 		} else {
 			pendota.addToTagBuild(
 			pendota._pendota_elem_array_.length - 1,
@@ -922,6 +923,7 @@ if (!pendota._pendotaUIIsInjected) {
 			myField.value = myField.value.substring(0, endPos)
 				+ myValue
 				+ myField.value.substring(endPos, myField.value.length);
+			myField.selectionStart = myField.selectionEnd = endPos + myValue.length;
 		} else {
 			myField.value += myValue;
 		}
@@ -1262,6 +1264,8 @@ if (!pendota._pendotaUIIsInjected) {
  				pendota.listenersToBlock.forEach(function (ltype) {
 					document.querySelector('.' + pendota.wrapperClass).addEventListener(ltype, pendota.blockerFunction);
 				}); 
+
+				document.getElementById(pendota.sizzlerInputId).addEventListener("input", pendota.checkTagClearEligibility);
 
 				feather.replace(); // sets feather icons (e.g. lock icon)
 
