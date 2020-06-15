@@ -64,6 +64,7 @@ if (!pendota._pendotaUIIsInjected) {
 	pendota._pendota_isLocked_ = false;
 	pendota.lastSizzleId;
 	pendota.sizzleCountObj = {};
+	pendota.isFirstLock = true;
 
 	/*
 	* Removes the hidden class from the element
@@ -238,6 +239,7 @@ if (!pendota._pendotaUIIsInjected) {
 			tB.dataset.freetextMode = "off";
 			pendota.updateAutoTag();
 		} else {
+			pendota.isFirstLock = false;
 			pendota.show(document.getElementById(pendota.sizzlerInputFormId));
 			pendota.hide(document.getElementById(pendota.tagBuilderNonFreetextId));
 			var inpField = document.getElementById(pendota.sizzlerInputId);
@@ -287,6 +289,7 @@ if (!pendota._pendotaUIIsInjected) {
 	 */
 	pendota.addToTagBuild = function (tier, attribute, value) {
 		if (typeof value == "undefined" || value == "") return; //No empty values
+		pendota.isFirstLock = false;
 		if (["type", "id"].includes(attribute)) {
 			var newVal = { tier: tier, items: [] };
 			newVal[attribute] = { value: value };
@@ -553,7 +556,9 @@ if (!pendota._pendotaUIIsInjected) {
 		if (!pendota._pendota_isLocked_) pendota.setLockMessage("Click any feature to select it");
 		else if (pendota.isFreetextMode()) pendota.setLockMessage("Power User - FreeType Mode");
 		else if (pendota.tagBuild.length > 0) pendota.setLockMessage("You can edit pink tag items by clicking on them");
-		else pendota.setLockMessage("Now build a tag using the [+] buttons!")
+		else if (pendota.isFirstLock) {
+			pendota.setLockMessage("Now build a tag using the [+] buttons!");
+		} else pendota.setLockMessage("Build a tag using the [+] buttons")
 	}
 
 	pendota.checkPlaceholderEligibility = function() {
@@ -566,7 +571,6 @@ if (!pendota._pendotaUIIsInjected) {
 	}
 
 	pendota.checkTagClearEligibility = function() {
-		console.log('Checking clear button...');
 		var szlInp = document.getElementById(pendota.sizzlerInputId);
 		var clrBtn = document.getElementById(pendota.tagBuilderClearBtnId);
 		if (szlInp.value.length) pendota.show(clrBtn);
@@ -1198,8 +1202,9 @@ if (!pendota._pendotaUIIsInjected) {
 		for (var i = 0; i < sizzleVals.length; i++) {
 			sizzleCount += parseInt(sizzleVals[i]);
 		}
-		document.getElementById(pendota.sizzlerCountId).innerText =
-			sizzleCount;
+		// check if the count value exists (in case the tagging aid is shut down)
+		if (document.getElementById(pendota.sizzlerCountId)) document.getElementById(pendota.sizzlerCountId).innerText = sizzleCount;
+
 	};
 
 	/*

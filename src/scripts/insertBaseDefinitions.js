@@ -419,7 +419,7 @@ if (!pendota._pendotaIsInjected) {
 		window.addEventListener("resize", pendota._pendota_highlight, true);
 		window.addEventListener("scroll", pendota._pendota_highlight, true);
 		window.addEventListener("click", pendota._pendota_highlight, true);
-		pendota.changePollInterval = window.setInterval(pendota._pendota_highlight, 2000);
+		//pendota.changePollInterval = window.setInterval(pendota._pendota_highlight, 2000);
 	}
 
     /*
@@ -470,7 +470,9 @@ if (!pendota._pendotaIsInjected) {
     * Checks the currently stored selector and updates Sizzle highlighting to match.
     * @param {
     */
-	pendota._pendota_highlight = function() {
+	pendota._pendota_highlight = function(evt) {
+		// don't execute on clicks on the pendota wrapper
+		if (typeof evt !== "undefined" && typeof evt.target !== undefined && typeof evt.target.closest !== undefined && evt.target.closest(pendota.pendotaWrapperClass)) return;
 		var selector = pendota.sizzleSelector;
 		var updateId = pendota.lastSizzleHighlightId;
 		pendota._pendota_remove_highlight();
@@ -508,8 +510,9 @@ if (!pendota._pendotaIsInjected) {
 			}
 			if (pendota.lastSizzleHighlightId > 0) {
 				pendota.sendMessageToAllFrames(window, {type:"SIZZLE_COUNT", updateId: updateId, sourceFrame: pendota.iframeFullIndexVal, count: numMatch});
-				pendota.lastSizzleHighlightId = 0; // don't send duplicate counts on resize / scroll
 			}
+			// get a sizzle update every 250ms or 50ms * last number of values, whichever is higher, up to a max of 5 seconds
+			window.setTimeout(pendota._pendota_highlight, Math.min(Math.max(numMatch * 20, 250), 10000));
 		}
 	}
 

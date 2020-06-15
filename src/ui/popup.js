@@ -2,6 +2,7 @@ var activeTab;
 var pendotaPopupId = "pendota-popup-wrapper";
 var btnDesId = "btnDesignerToggle";
 var btnTAId = "btnTaggingAidToggle";
+var lnTutId = "lnTutorialVideoLink";
 
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 	// since only one tab should be active and in the current window at once
@@ -77,6 +78,14 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						btnTA.innerText = "Toggle Tagging Aid";
 						btnTA.addEventListener("click", launchPendota);
 						document.getElementById(pendotaPopupId).appendChild(btnTA);
+
+						var lnTut = document.createElement("a");
+						lnTut.id = lnTutId;
+						lnTut.innerText = "How to use this tool"
+						lnTut.setAttribute("href", "https://example.com/");
+						lnTut.setAttribute("target", "_blank");
+						lnTut.classList.add("popup-link");
+						document.getElementById(pendotaPopupId).appendChild(lnTut);
 					}
 				}
 		);

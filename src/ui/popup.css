@@ -41,3 +41,28 @@ body {
 .popup-button:focus {
 	outline: 0;
 }
+
+.popup-link {
+  	color: var(--pendo-teal);
+	cursor: pointer;
+	display: block;
+	font-family: proxima-nova, Helvetica Neue, Arial, sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	margin: 16px auto 8px;
+	outline: 0;
+	text-align: center;
+	text-decoration: none;
+	transition: 0.2s;
+	width: 220px;
+}
+
+.popup-link:hover {
+	text-decoration: underline;
+
+}
+
+.popup-link:visited {
+	color: var(--pendo-teal);
+	
+}
