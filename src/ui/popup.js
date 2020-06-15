@@ -82,7 +82,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 						var lnTut = document.createElement("a");
 						lnTut.id = lnTutId;
 						lnTut.innerText = "How to use this tool"
-						lnTut.setAttribute("href", "https://example.com/");
+						lnTut.setAttribute("href", "https://bit.ly/pendotatutorial");
 						lnTut.setAttribute("target", "_blank");
 						lnTut.classList.add("popup-link");
 						document.getElementById(pendotaPopupId).appendChild(lnTut);
