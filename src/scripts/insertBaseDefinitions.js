@@ -363,7 +363,8 @@ if (!pendota._pendotaIsInjected) {
 	pendota.keyLockListener = function(e) {
 		if (e.altKey && e.shiftKey && e.keyCode == 76) {
 			// alt + shift + L to lock/unlock
-			pendota.signalLockSwitch(e);
+			// TEMPORARILY DISABLED
+			//pendota.signalLockSwitch(e);
 		}
 
 		if (e.keyCode == 27) {
@@ -416,9 +417,9 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota._pendotaActivateHighlight = function() {
 		pendota.sizzleIsActive = true;
-		window.addEventListener("resize", pendota._pendota_highlight, true);
-		window.addEventListener("scroll", pendota._pendota_highlight, true);
-		window.addEventListener("click", pendota._pendota_highlight, true);
+		window.addEventListener("resize", pendota.th_pendota_highlight, true);
+		window.addEventListener("scroll", pendota.th_pendota_highlight, true);
+		window.addEventListener("click", pendota.th_pendota_highlight, true);
 		//pendota.changePollInterval = window.setInterval(pendota._pendota_highlight, 2000);
 	}
 
@@ -427,9 +428,9 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota._pendotaDeactivateHighlight = function() {
 		pendota.sizzleIsActive = false;
-		window.removeEventListener("resize", pendota._pendota_highlight, true);
-		window.removeEventListener("scroll", pendota._pendota_highlight, true);
-		window.removeEventListener("click", pendota._pendota_highlight, true);
+		window.removeEventListener("resize", pendota.th_pendota_highlight, true);
+		window.removeEventListener("scroll", pendota.th_pendota_highlight, true);
+		window.removeEventListener("click", pendota.th_pendota_highlight, true);
 		window.clearInterval(pendota.changePollInterval);
 		pendota._pendota_remove_highlight();
 	}
@@ -515,6 +516,8 @@ if (!pendota._pendotaIsInjected) {
 			window.setTimeout(pendota._pendota_highlight, Math.min(Math.max(numMatch * 20, 250), 10000));
 		}
 	}
+
+	pendota.th_pendota_highlight = _.debounce(pendota._pendota_highlight, 75);
 
     /*
     * Removes any active sizzle boxes.
@@ -628,8 +631,8 @@ if (!pendota._pendotaIsInjected) {
 			window.addEventListener("keydown", pendota.keyLockListener);
 
 			// on scroll or resize, adjust the outline box
-			window.addEventListener("scroll", pendota.resetOutline);
-			window.addEventListener("resize", pendota.resetOutline);
+			window.addEventListener("scroll", pendota.resetOutline,true);
+			window.addEventListener("resize", pendota.resetOutline,true);
 			
 			// add listener for sizzler activation and updates
 			window.addEventListener("message", pendota.sizzleSwitchSignalListener, true);
@@ -675,8 +678,8 @@ if (!pendota._pendotaIsInjected) {
 			window.removeEventListener("mouseover", pendota.mouseoverListener, true);
 			window.removeEventListener("mouseover", pendota.blockerFunction, true);
 			window.removeEventListener("keydown", pendota.keyLockListener);
-			window.removeEventListener("scroll", pendota.resetOutline);
-			window.removeEventListener("resize", pendota.resetOutline);
+			window.removeEventListener("scroll", pendota.resetOutline,true);
+			window.removeEventListener("resize", pendota.resetOutline,true);
 			window.removeEventListener("message", pendota.sizzleSwitchSignalListener, true);
 			window.removeEventListener("message", pendota.sizzleUpdateSignalListener, true);
 			window.removeEventListener("message", pendota.signalDeactivateListener, false);
