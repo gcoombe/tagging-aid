@@ -473,7 +473,7 @@ if (!pendota._pendotaIsInjected) {
     */
 	pendota._pendota_highlight = function(evt) {
 		// don't execute on clicks on the pendota wrapper
-		if (typeof evt !== "undefined" && typeof evt.target !== undefined && typeof evt.target.closest !== undefined && evt.target.closest(pendota.pendotaWrapperClass)) return;
+		if (typeof evt !== "undefined" && typeof evt.target !== "undefined" && typeof evt.target.closest !== "undefined" && evt.target.closest(pendota.pendotaWrapperClass)) return;
 		var selector = pendota.sizzleSelector;
 		var updateId = pendota.lastSizzleHighlightId;
 		pendota._pendota_remove_highlight();
